@@ -64,6 +64,53 @@ body {
     display: flex;
 }
 
+/* Mobile Blocker */
+#mobileBlocker {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--bg-dark);
+    z-index: 99999999;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 30px;
+    color: var(--text-primary);
+}
+
+#mobileBlocker i {
+    font-size: 80px;
+    color: var(--danger);
+    margin-bottom: 20px;
+}
+
+#mobileBlocker h2 {
+    font-size: 28px;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+#mobileBlocker p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    #mobileBlocker {
+        display: flex;
+    }
+    .app-container, .login-container {
+        display: none !important;
+    }
+}
+
 /* Typography elements */
 h1, h2, h3 { color: var(--text-primary); font-weight: 600; }
 a { text-decoration: none; color: inherit; }
