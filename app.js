@@ -234,9 +234,12 @@ async function loadSchedule() {
                     if (!r || !r[0] || String(r[0]).trim() === '' || String(r[0]).trim().toUpperCase() === 'GESTOR') break;
                     
                     let isCurrentUser = (currentUser && (r[0].toLowerCase().includes(currentUser.name.toLowerCase()) || currentUser.name.toLowerCase().includes(r[0].toLowerCase())));
+                    
+                    if (currentUser && currentUser.role === 'Gestor' && !isCurrentUser) continue;
+
                     let bgClass = isCurrentUser ? 'rgba(59,130,246,0.1)' : 'transparent';
                     
-                    let trHTML = `<tr style="border-bottom: 1px solid var(--glass-border); background: ${bgClass};">`;
+                    let trHTML = `<tr class="hover-highlight" style="border-bottom: 1px solid var(--glass-border); background: ${bgClass};">`;
                     trHTML += `<td style="padding: 12px; font-weight: 600; text-align: left; color: ${isCurrentUser ? 'var(--accent-primary)' : 'var(--text-primary)'}; position: sticky; left: 0; background: ${isCurrentUser ? 'var(--bg-dark)' : 'var(--bg-panel)'}; z-index: 1;">${r[0]}</td>`;
                     
                     // Encontrar el turno para mostrar en el badge principal
@@ -257,8 +260,10 @@ async function loadSchedule() {
                         
                         let badgeClass = 'pending';
                         if(shift.includes('pm') || shift.includes('am')) badgeClass = 'in-progress';
+                        else if(shift.toLowerCase().includes('vacacion')) badgeClass = 'vacaciones-badge';
+                        else if(shift.toLowerCase().includes('descansa')) badgeClass = 'descanso-badge';
                         
-                        trHTML += `<td style="padding: 12px; text-align: center; white-space: nowrap;"><span class="badge ${badgeClass}" style="opacity: ${shift.includes('Descansa') ? 0.3 : 1}">${shift}</span></td>`;
+                        trHTML += `<td style="padding: 12px; text-align: center; white-space: nowrap;"><span class="badge ${badgeClass}">${shift}</span></td>`;
                     }
                     
                     if (isCurrentUser && badgeShift) {
@@ -361,13 +366,16 @@ function loadTeletrabajo() {
                 tableBody.innerHTML = '';
                 block.data.forEach(row => {
                     let isCurrentUser = (currentUser && row.gestor.toLowerCase().includes(currentUser.name.toLowerCase()));
+                    
+                    if (currentUser && currentUser.role === 'Gestor' && !isCurrentUser) return;
+
                     let bgClass = isCurrentUser ? 'rgba(59,130,246,0.1)' : 'transparent';
                     
                     let isTeletrabajo = row.dia && row.dia.toLowerCase() !== 'nan';
                     let estadoHtml = isTeletrabajo ? `<span class="badge" style="background: rgba(16, 185, 129, 0.2); color: var(--success);">HOME OFFICE</span>` : `<span class="badge pending">PRESENCIAL</span>`;
                     
                     tableBody.innerHTML += `
-                        <tr style="border-bottom: 1px solid var(--glass-border); background: ${bgClass};">
+                        <tr class="hover-highlight" style="border-bottom: 1px solid var(--glass-border); background: ${bgClass};">
                             <td style="padding: 12px; font-weight: 600; text-align: left; color: ${isCurrentUser ? 'var(--accent-primary)' : 'var(--text-primary)'}; position: sticky; left: 0; background: ${isCurrentUser ? 'var(--bg-dark)' : 'var(--bg-panel)'}; z-index: 1;">${row.gestor}</td>
                             <td style="padding: 12px; text-align: center;">${isTeletrabajo ? row.dia : '-'}</td>
                             <td style="padding: 12px; text-align: center;">${estadoHtml}</td>
@@ -603,7 +611,11 @@ function initApp() {
         
         const avatarEl = document.querySelector('.avatar');
         if (avatarEl && currentUser.name) {
-            avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff`;
+            avatarEl.src = `assets/src/img/${currentUser.name}.svg`;
+            avatarEl.onerror = function() {
+                this.onerror = null;
+                this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff`;
+            };
         }
 
         // Show Aprobaciones tab for Supervisor/Admin
@@ -1431,6 +1443,72 @@ async function markAllAsRead() {
             }
         }
     } catch(e) {
+        console.error(e);
+    }
+}
+
+// Funciones del Modal de Perfil
+function openProfileModal() {
+    document.getElementById('profileModal').classList.add('active');
+    document.getElementById('newPasswordInput').value = '';
+    const msg = document.getElementById('passwordChangeMsg');
+    if (msg) msg.style.display = 'none';
+}
+
+function toggleProfilePassword(iconElement) {
+    const input = document.getElementById('newPasswordInput');
+    if (input.type === 'password') {
+        input.type = 'text';
+        iconElement.classList.remove('bx-show');
+        iconElement.classList.add('bx-hide');
+    } else {
+        input.type = 'password';
+        iconElement.classList.remove('bx-hide');
+        iconElement.classList.add('bx-show');
+    }
+}
+
+async function changePassword() {
+    const newPass = document.getElementById('newPasswordInput').value;
+    const msg = document.getElementById('passwordChangeMsg');
+    
+    if(!newPass || newPass.trim() === '') {
+        msg.textContent = 'Por favor ingresa una contraseña válida.';
+        msg.style.color = 'var(--danger)';
+        msg.style.display = 'block';
+        return;
+    }
+    
+    msg.textContent = 'Actualizando...';
+    msg.style.color = 'var(--text-primary)';
+    msg.style.display = 'block';
+    
+    try {
+        const snapshot = await database.ref('users').once('value');
+        if(snapshot.exists()) {
+            const data = snapshot.val();
+            let userKey = null;
+            for(let key in data) {
+                if(data[key].email === currentUser.email) {
+                    userKey = key;
+                    break;
+                }
+            }
+            if(userKey) {
+                await database.ref('users/' + userKey).update({
+                    password: newPass
+                });
+                msg.textContent = '¡Contraseña actualizada exitosamente!';
+                msg.style.color = 'var(--success)';
+                setTimeout(() => closeModal('profileModal'), 2000);
+            } else {
+                msg.textContent = 'Error: Usuario no encontrado en la base de datos.';
+                msg.style.color = 'var(--danger)';
+            }
+        }
+    } catch(e) {
+        msg.textContent = 'Error actualizando contraseña.';
+        msg.style.color = 'var(--danger)';
         console.error(e);
     }
 }

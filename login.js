@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     "Nombre": name,
                     "Correo": email,
                     "Rol_Solicitado": role,
-                    "Mensaje": "Hay un nuevo usuario pendiente de aprobación en la plataforma RiskOps.",
+                    "Mensaje": "Hay un nuevo usuario pendiente de aprobación en la plataforma Control Risk.",
                     "_subject": `Nuevo Registro Pendiente: ${name}`,
                     "_captcha": "false",
                     "_next": window.location.href // Para que puedan volver si FormSubmit lo permite

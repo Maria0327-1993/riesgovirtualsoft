@@ -358,6 +358,13 @@ a { text-decoration: none; color: inherit; }
 .badge { margin-left: auto; font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600; }
 .badge.pending { background: var(--pending-bg); color: #9CA3AF; }
 .badge.in-progress { background: rgba(59,130,246,0.15); color: #3B82F6; }
+.badge.vacaciones-badge { background: var(--success-bg); color: var(--success); }
+.badge.descanso-badge { background: rgba(107, 114, 128, 0.4); color: var(--text-secondary); }
+
+.hover-highlight { transition: background-color 0.2s; }
+.hover-highlight:hover td { background-color: rgba(255, 255, 255, 0.05) !important; }
+[data-theme="light"] .hover-highlight:hover td { background-color: rgba(0, 0, 0, 0.05) !important; }
+.hover-highlight:hover td:first-child { text-decoration: underline; color: var(--accent-primary) !important; }
 
 .tree-children {
     display: flex;

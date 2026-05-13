@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Risk Dashboard | Control Operativo</title>
+    <title>Control Risk | Control Operativo</title>
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,8 +27,8 @@
         <!-- Sidebar -->
         <aside class="sidebar glass-panel">
             <div class="sidebar-header">
-                <img src="assets/src/img/logo.svg" alt="RiskOps Logo" class="logo-icon" style="width: 35px; height: auto;">
-                <h1 class="logo-text">Risk<span>Ops</span></h1>
+                <img src="assets/src/img/logo.svg" alt="Control Risk Logo" class="logo-icon" style="width: 35px; height: auto;">
+                <h1 class="logo-text">Control <span>Risk</span></h1>
             </div>
             
             <nav class="sidebar-nav">
@@ -68,7 +68,7 @@
                             <span class="notification-badge" id="notificationCount" style="display:none; position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; font-size:10px; padding:2px 5px; border-radius:10px;">0</span>
                         </button>
                     </div>
-                    <div class="user-profile">
+                    <div class="user-profile" onclick="openProfileModal()" style="cursor: pointer;">
                         <img src="https://ui-avatars.com/api/?name=Alejandra+S&background=0D8ABC&color=fff" alt="User Avatar" class="avatar">
                         <div class="user-details">
                             <span class="user-name">Alejandra S.</span>
@@ -394,6 +394,23 @@
                 <button class="btn btn-outline" onclick="closeModal('exceptionModal')">Cancelar</button>
                 <button class="btn btn-danger" onclick="confirmException()">Confirmar Excepción</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal for Profile / Change Password -->
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal glass-panel">
+            <h2><i class='bx bx-user-circle'></i> Mi Perfil</h2>
+            <p>Puedes cambiar tu contraseña a continuación:</p>
+            <div class="input-group" style="margin-bottom: 15px; position: relative;">
+                <input type="password" id="newPasswordInput" class="modern-input" placeholder="Nueva Contraseña" style="min-height: 40px; width: 100%; padding-right: 40px;">
+                <i class='bx bx-show toggle-password' style="position: absolute; right: 14px; top: 12px; cursor: pointer; color: var(--text-primary); font-size: 20px;" onclick="toggleProfilePassword(this)"></i>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeModal('profileModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="changePassword()">Guardar Cambios</button>
+            </div>
+            <p id="passwordChangeMsg" style="display: none; margin-top: 10px; font-size: 14px; text-align: center;"></p>
         </div>
     </div>
 
