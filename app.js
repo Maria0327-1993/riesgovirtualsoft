@@ -611,11 +611,12 @@ function initApp() {
         
         const avatarEl = document.querySelector('.avatar');
         if (avatarEl && currentUser.name) {
+            const cleanName = currentUser.name.trim();
             avatarEl.onerror = function() {
                 this.onerror = null;
-                this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff`;
+                this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=0D8ABC&color=fff`;
             };
-            avatarEl.src = `assets/src/img/${encodeURIComponent(currentUser.name)}.svg`;
+            avatarEl.src = `assets/src/img/${cleanName}.svg`;
         }
 
         // Show Aprobaciones tab for Supervisor/Admin
