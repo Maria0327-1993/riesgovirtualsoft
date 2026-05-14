@@ -1,35 +1,50 @@
-// Risk Manager - Rescate v65
+// Risk Manager - Restauración Total v66
 function removeAccents(str) {
     if (!str) return "";
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-const user = JSON.parse(localStorage.getItem('riskOps_currentUser') || '{}');
+const currentUser = JSON.parse(localStorage.getItem('riskOps_currentUser') || '{}');
 
 function init() {
-    if (user.name) {
-        document.querySelector('.user-name').textContent = user.name;
-        document.querySelector('.user-role').textContent = user.role;
+    if (currentUser.name) {
+        document.querySelector('.user-name').textContent = currentUser.name;
+        document.querySelector('.user-role').textContent = currentUser.role;
         const av = document.querySelector('.avatar');
-        const clean = removeAccents(user.name).trim();
+        const clean = removeAccents(currentUser.name).trim();
         av.src = `assets/src/img/${clean}.png`;
-        av.onerror = () => av.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+        av.onerror = () => av.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}`;
+
+        // Mostrar Aprobaciones si es Admin
+        if (currentUser.role === 'Admin' || currentUser.role === 'Supervisor') {
+            document.getElementById('navAprobaciones').style.display = 'flex';
+        }
     }
 
     loadTasks();
     loadTable('Horario/Horario 2026.xlsx', 'weekSelector', 'scheduleTableBody', false);
     loadTable('Teletrabajo/Teletrabajo.xlsx', 'teleWeekSelector', 'teleTableBody', true);
 
+    // Nav Switcher
     document.querySelectorAll('.nav-item').forEach(item => {
-        item.onclick = () => {
+        item.onclick = (e) => {
+            e.preventDefault();
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             item.classList.add('active');
-            document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
-            if(item.id === 'navWorkspace') document.getElementById('view-workspace').style.display = 'block';
-            if(item.id === 'navHorario') document.getElementById('view-horario').style.display = 'block';
-            if(item.id === 'navTeletrabajo') document.getElementById('view-teletrabajo').style.display = 'block';
+            document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active-view'));
+            const viewId = item.id.replace('nav', 'view').toLowerCase();
+            document.getElementById(viewId).classList.add('active-view');
         };
     });
+
+    // Modo Claro / Oscuro
+    const themeBtn = document.getElementById('themeToggle');
+    themeBtn.onclick = () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        themeBtn.innerHTML = next === 'dark' ? '<i class="bx bx-sun"></i>' : '<i class="bx bx-moon"></i>';
+    };
 
     setInterval(() => {
         document.getElementById('liveClock').textContent = new Date().toLocaleTimeString();
@@ -51,13 +66,13 @@ async function loadTasks() {
         sel.innerHTML = '<option value="">Selecciona tu SET...</option>' + Object.keys(grouped).sort().map(s => `<option value="${s}">${s}</option>`).join('');
         sel.onchange = (e) => {
             const list = grouped[e.target.value];
-            document.querySelector('.tree-container').innerHTML = list.map(t => `<div class="task-item" onclick="showTask(\'${t.Tarea}\',\'${t['Detalle de Tarea'] || '-'}\')"><i class='bx bx-file'></i>${t.Tarea}</div>`).join('');
+            document.querySelector('.tree-container').innerHTML = list.map(t => `<div class="task-item" onclick="showTask(\'${t.Tarea}\',\'${(t['Detalle de Tarea']||'-').replace(/'/g, "\\'")}\')"><i class='bx bx-file'></i>${t.Tarea}</div>`).join('');
         };
     } catch(e) {}
 }
 
 window.showTask = (n, d) => {
-    document.getElementById('taskDetail').innerHTML = `<h3>${n}</h3><p>${d}</p>`;
+    document.getElementById('taskDetail').innerHTML = `<div class="glass-panel" style="padding:25px;"><h3>${n}</h3><p style="margin-top:15px; color:var(--text-secondary);">${d}</p></div>`;
 };
 
 async function loadTable(path, selId, bodyId, isTele) {
@@ -77,11 +92,13 @@ function render(id, json, start, isTele) {
     const b = document.getElementById(id); b.innerHTML = '';
     for(let i = start + 1; i < json.length; i++) {
         if(!json[i][0] || json[i][0].toString().includes('Semana')) break;
+        if(json[i][0] === 'GESTOR') continue;
         const tr = document.createElement('tr');
         tr.innerHTML = json[i].map((c, idx) => {
             if(isTele && idx > 0) {
-                if((c||'').toString().toUpperCase().includes('T')) return '<td>🏠</td>';
-                if((c||'').toString().toUpperCase().includes('O')) return '<td>🏢</td>';
+                const txt = (c||'').toString().toUpperCase();
+                if(txt.includes('T')) return '<td><div class="status-badge tele"><i class="bx bx-home"></i></div></td>';
+                if(txt.includes('O')) return '<td><div class="status-badge office"><i class="bx bx-building"></i></div></td>';
             }
             return `<td>${c || '-'}</td>`;
         }).join('');
@@ -89,5 +106,5 @@ function render(id, json, start, isTele) {
     }
 }
 
-window.handleEndShift = () => { if(confirm('¿Salir?')) { localStorage.removeItem('riskOps_currentUser'); window.location.href='login.html'; } };
+window.handleEndShift = () => { if(confirm('¿Seguro que deseas salir?')) { localStorage.removeItem('riskOps_currentUser'); window.location.href='login.html'; } };
 init();
