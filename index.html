@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>RiskOps | Portal Operativo</title>
-    <link rel="stylesheet" href="styles.css?v=68">
+    <link rel="stylesheet" href="styles.css?v=69">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -12,17 +12,17 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <i class='bx bx-shield-quarter' style="font-size: 2rem; color: #3B82F6;"></i>
-                <span class="brand-name" style="color: white; font-size: 1.5rem; font-weight: 800;">Risk<span style="color: #3B82F6;">Ops</span></span>
+                <span class="brand-name">Risk<span style="color: #3B82F6;">Ops</span></span>
             </div>
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" id="navWorkspace"><i class='bx bx-grid-alt'></i> Workspace</a>
-                <a href="#" class="nav-item" id="navTurno"><i class='bx bx-calendar-event'></i> Mi Turno</a>
+                <a href="#" class="nav-item" id="navTurno"><i class='bx bx-calendar'></i> Mi Turno</a>
                 <a href="#" class="nav-item" id="navDocs"><i class='bx bx-folder'></i> Documentación</a>
                 <a href="#" class="nav-item" id="navPermisos"><i class='bx bx-check-shield'></i> Permisos</a>
                 <a href="#" class="nav-item" id="navSoporte"><i class='bx bx-help-circle'></i> Soporte</a>
             </nav>
             <div style="margin-top: auto;">
-                <button class="btn btn-danger" onclick="handleEndShift()">
+                <button class="btn btn-danger" onclick="handleEndShift()" style="width: 100%; opacity: 0.8;">
                     <i class='bx bx-power-off'></i> Finalizar Turno
                 </button>
             </div>
@@ -31,17 +31,17 @@
         <main class="main-content">
             <header class="top-header">
                 <div class="header-left">
-                    <span class="shift-badge" style="background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">TURNO POR ASIGNAR</span>
-                    <span id="liveClock" style="margin-left: 15px; font-weight: 700; font-size: 1.1rem; color: #3B82F6;">00:00:00</span>
+                    <span style="background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">TURNO POR ASIGNAR</span>
+                    <span id="liveClock" style="margin-left: 20px; font-weight: 700; color: #3B82F6;">00:00:00</span>
                 </div>
                 <div class="header-right">
                     <button class="icon-btn" id="themeToggle"><i class='bx bx-moon'></i></button>
                     <button class="icon-btn"><i class='bx bx-bell'></i></button>
-                    <div class="user-profile">
-                        <div class="avatar-circle" style="width: 40px; height: 40px; background: #007BFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white;">AS</div>
-                        <div class="user-details" style="margin-left: 10px;">
-                            <span class="user-name" style="font-size: 13px; font-weight: 700;">Cargando...</span>
-                            <span class="user-role" style="font-size: 11px; color: #9CA3AF;">Gestor</span>
+                    <div class="user-profile" style="display: flex; align-items: center; gap: 12px; margin-left: 20px; padding-left: 20px; border-left: 1px solid var(--glass-border);">
+                        <div class="avatar-circle">AS</div>
+                        <div class="user-details">
+                            <span class="user-name" style="font-size: 14px; font-weight: 700;">...</span>
+                            <span class="user-role" style="font-size: 11px; color: var(--text-secondary);">Gestor</span>
                         </div>
                     </div>
                 </div>
@@ -49,48 +49,47 @@
 
             <!-- Workspace Section -->
             <div id="view-workspace" class="view-panel active-view">
-                <div class="workspace-grid">
-                    <div class="left-panel glass-panel">
-                        <select id="activeSetSelect" class="form-select glass-panel">
-                            <option value="">Selecciona tu SET...</option>
-                        </select>
-                        <div class="tree-container"></div>
+                <div style="display: grid; grid-template-columns: 320px 1fr; gap: 25px; height: 100%;">
+                    <div class="glass-panel" style="padding: 20px;">
+                        <select id="activeSetSelect" class="form-select"></select>
+                        <div class="tree-container" style="margin-top: 15px;"></div>
                     </div>
-                    <div class="right-panel glass-panel">
-                        <div id="taskDetail">Selecciona una tarea del árbol</div>
+                    <div class="glass-panel" style="padding: 30px;">
+                        <div id="taskDetail">Selecciona una tarea para comenzar...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Mi Turno (Horario) -->
+            <!-- Mi Turno Section -->
             <div id="view-turno" class="view-panel">
                 <div class="glass-panel" style="padding: 25px;">
-                    <select id="weekSelector" class="form-select"></select>
-                    <table class="schedule-table">
-                        <tbody id="scheduleTableBody"></tbody>
-                    </table>
+                    <select id="weekSelector" class="form-select" style="max-width: 300px;"></select>
+                    <div style="overflow-x: auto; margin-top: 20px;">
+                        <table class="schedule-table">
+                            <tbody id="scheduleTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- Permisos Section -->
             <div id="view-permisos" class="view-panel">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
-                    <div class="glass-panel" style="padding: 25px;">
-                        <h3>Crear Nueva Solicitud</h3>
-                        <!-- Formulario de permisos -->
+                    <div class="glass-panel" style="padding: 30px;">
+                        <h3 style="margin-bottom: 20px;">Crear Nueva Solicitud</h3>
+                        <input type="text" class="form-input" placeholder="Nombre del Gestor">
+                        <select class="form-select"><option>Vacaciones</option><option>Día de la familia</option></select>
+                        <input type="date" class="form-input">
+                        <button class="btn btn-primary" style="width: 100%;">Enviar a Supervisor</button>
                     </div>
-                    <div class="glass-panel" style="padding: 25px;">
-                        <h3>Histórico de Permisos</h3>
-                        <!-- Lista de permisos -->
+                    <div class="glass-panel" style="padding: 30px;">
+                        <h3 style="margin-bottom: 20px;">Histórico de Permisos</h3>
+                        <div id="historyList">Cargando histórico...</div>
                     </div>
                 </div>
             </div>
-
         </main>
     </div>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="app.js?v=68"></script>
+    <script src="app.js?v=69"></script>
 </body>
 </html>
