@@ -1,4 +1,4 @@
-// Helper para quitar acentos
+ï»¿// Helper para quitar acentos
 function removeAccents(str) {
     if (!str) return "";
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -645,12 +645,13 @@ function initApp() {
             if(viewWorkspace) viewWorkspace.style.display = 'none';
             
             // Forzar vista de Dashboard como inicial
-            if(document.getElementById('dashboard-module')) {
-                document.querySelectorAll('.module').forEach(v => v.classList.remove('active'));
-                document.getElementById('dashboard-module').classList.add('active');
+            const vDash = document.getElementById('view-dashboard');
+            const nDash = document.getElementById('navDashboard');
+            if(vDash && nDash) {
+                document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
+                vDash.style.display = 'block';
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                const navDashboard = Array.from(document.querySelectorAll('.nav-item')).find(n => n.textContent.includes('Inicio'));
-                if(navDashboard) navDashboard.classList.add('active');
+                nDash.classList.add('active');
                 loadDashboardStats();
             }
             
@@ -844,16 +845,18 @@ function initApp() {
 
             // Mostrar la correcta
             if(item.textContent.includes('Inicio')) {
-                document.getElementById('dashboard-module').classList.add('active');
+                const vd = document.getElementById('view-dashboard');
+                if(vd) vd.style.display = 'block';
                 loadDashboardStats();
             }
-            if(item.textContent.includes('Mis Tareas') || item.textContent.includes('Workspace')) document.getElementById('view-workspace').classList.add('active');
-            if(item.textContent.includes('Horario')) document.getElementById('view-horario').classList.add('active');
-            if(item.textContent.includes('Teletrabajo')) document.getElementById('view-teletrabajo').classList.add('active');
-            if(item.textContent.includes('DocumentaciÃ³n')) document.getElementById('view-docs').classList.add('active');
-            if(item.textContent.includes('Permisos')) document.getElementById('view-permisos').classList.add('active');
+            if(item.textContent.includes('Mis Tareas') || item.textContent.includes('Workspace')) document.getElementById('view-workspace').style.display = 'block';
+            if(item.textContent.includes('Horario')) document.getElementById('view-horario').style.display = 'block';
+            if(item.textContent.includes('Teletrabajo')) document.getElementById('view-teletrabajo').style.display = 'block';
+            if(item.textContent.includes('DocumentaciÃ³n')) document.getElementById('view-docs').style.display = 'block';
+            if(item.textContent.includes('Permisos')) document.getElementById('view-permisos').style.display = 'block';
             if(item.textContent.includes('Aprobaciones')) {
-                document.getElementById('view-aprobaciones').classList.add('active');
+                const va = document.getElementById('view-aprobaciones');
+                if(va) va.style.display = 'block';
                 renderPendingUsers();
                 renderPendingPermissions();
             }
@@ -865,6 +868,23 @@ function initApp() {
         const navDashboard = Array.from(document.querySelectorAll('.nav-item')).find(n => n.textContent.includes('Inicio'));
         if(navDashboard) navDashboard.click();
     }
+
+    const btnQHorario = document.getElementById('quick-horario');
+    const btnQTele = document.getElementById('quick-teletrabajo');
+    const btnQTareas = document.getElementById('quick-tareas');
+    
+    if(btnQHorario) btnQHorario.onclick = () => { 
+        const nav = Array.from(document.querySelectorAll('.nav-item')).find(x => x.textContent.includes('Horario'));
+        if(nav) nav.click();
+    };
+    if(btnQTele) btnQTele.onclick = () => { 
+        const nav = Array.from(document.querySelectorAll('.nav-item')).find(x => x.textContent.includes('Teletrabajo'));
+        if(nav) nav.click();
+    };
+    if(btnQTareas) btnQTareas.onclick = () => { 
+        const nav = Array.from(document.querySelectorAll('.nav-item')).find(x => x.textContent.includes('Mis Tareas'));
+        if(nav) nav.click();
+    };
 
     // Inyectar documentos reales de la carpeta "Procesos" en el MÃ³dulo de Docs
     const docsGrid = document.querySelector('.docs-grid');
@@ -1549,7 +1569,7 @@ async function loadDashboardStats() {
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
             
-            const days = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+            const days = ["Domingo", "Lunes", "Martes", "Miï¿½rcoles", "Jueves", "Viernes", "Sï¿½bado"];
             const todayName = days[new Date().getDay()];
             
             let countToday = 0;
@@ -1593,8 +1613,8 @@ async function loadDashboardStats() {
         const docList = document.getElementById('recent-docs-list');
         if(docList) {
             const docs = [
-                { name: "Instructivo GGR Casino", file: "Instructivo de validación de GGR Casino.pdf", date: "Hoy" },
-                { name: "Política Retiros", file: "Política Procedimiento De Aprobación De Retiros.pdf", date: "Ayer" }
+                { name: "Instructivo GGR Casino", file: "Instructivo de validaciï¿½n de GGR Casino.pdf", date: "Hoy" },
+                { name: "Polï¿½tica Retiros", file: "Polï¿½tica Procedimiento De Aprobaciï¿½n De Retiros.pdf", date: "Ayer" }
             ];
             docList.innerHTML = docs.map(d => \ <div class="recent-doc-item" onclick="window.open('Procesos/\\', '_blank')"> <i class='bx bxs-file-pdf' style="color: #FF5A5A; font-size: 24px;"></i> <div style="flex-grow: 1;"> <div style="font-size: 14px; font-weight: 500;">\\</div> <div style="font-size: 11px; color: var(--text-secondary);">Actualizado \\</div> </div> <i class='bx bx-chevron-right'></i> </div> \).join('');
         }
@@ -1603,3 +1623,5 @@ async function loadDashboardStats() {
         console.error("Error loading dashboard stats:", e);
     }
 }
+
+

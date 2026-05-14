@@ -32,7 +32,8 @@
             </div>
             
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" id="navWorkspace"><i class='bx bx-grid-alt'></i> Mis Tareas</a>
+                <a href="#" class="nav-item active" id="navDashboard"><i class='bx bxs-dashboard'></i> Inicio</a>
+                <a href="#" class="nav-item" id="navWorkspace"><i class='bx bx-grid-alt'></i> Mis Tareas</a>
                 <a href="#" class="nav-item"><i class='bx bx-calendar'></i> Horario</a>
                 <a href="#" class="nav-item"><i class='bx bx-home-alt'></i> Teletrabajo</a>
                 <a href="#" class="nav-item"><i class='bx bx-folder-open'></i> Documentación</a>
@@ -78,8 +79,80 @@
                 </div>
             </header>
 
+            <!-- Vista: Inicio (Dashboard) -->
+            <div id="view-dashboard" class="view-panel active-view" style="padding: 20px;">
+                <div class="module-header" style="margin-bottom: 20px;">
+                    <div>
+                        <h2 class="module-title" style="font-size: 24px; font-weight: 700; color: var(--text-primary);">Panel de Control</h2>
+                        <p class="module-subtitle" style="color: var(--text-secondary);">Resumen operativo de hoy</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stats-card glass-panel">
+                        <div class="stats-icon" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-primary);">
+                            <i class='bx bx-home-alt'></i>
+                        </div>
+                        <div class="stats-info">
+                            <h3 id="stat-teletrabajo">0</h3>
+                            <p>En Teletrabajo Hoy</p>
+                        </div>
+                    </div>
+                    <div class="stats-card glass-panel">
+                        <div class="stats-icon" style="background: rgba(16, 185, 129, 0.2); color: var(--success);">
+                            <i class='bx bx-task'></i>
+                        </div>
+                        <div class="stats-info">
+                            <h3 id="stat-tareas">0%</h3>
+                            <p>Tareas Completadas</p>
+                        </div>
+                    </div>
+                    <div class="stats-card glass-panel">
+                        <div class="stats-icon" style="background: rgba(245, 158, 11, 0.2); color: var(--warning);">
+                            <i class='bx bx-user-voice'></i>
+                        </div>
+                        <div class="stats-info">
+                            <h3 id="stat-supervisores">0</h3>
+                            <p>Supervisores Activos</p>
+                        </div>
+                    </div>
+                    <div class="stats-card glass-panel">
+                        <div class="stats-icon" style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6;">
+                            <i class='bx bx-time-five'></i>
+                        </div>
+                        <div class="stats-info">
+                            <h3 id="stat-turno">...</h3>
+                            <p>Tu Turno Actual</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-content-grid">
+                    <div class="dashboard-main glass-panel">
+                        <h4 class="section-title"><i class='bx bx-book-content'></i> Manuales Recientes</h4>
+                        <div id="recent-docs-list" class="recent-list">
+                            <div class="loading-placeholder">Cargando documentación...</div>
+                        </div>
+                    </div>
+                    <div class="dashboard-side glass-panel">
+                        <h4 class="section-title"><i class='bx bx-rocket'></i> Accesos Rápidos</h4>
+                        <div class="quick-actions">
+                            <button class="action-btn" id="quick-horario">
+                                <i class='bx bx-calendar'></i> Ver Horario
+                            </button>
+                            <button class="action-btn" id="quick-teletrabajo">
+                                <i class='bx bx-home-circle'></i> Mi Teletrabajo
+                            </button>
+                            <button class="action-btn" id="quick-tareas">
+                                <i class='bx bx-list-check'></i> Mis Tareas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Dashboard Workspace -->
-            <div id="view-workspace" class="view-panel active-view">
+            <div id="view-workspace" class="view-panel" style="display: none;">
                 <div class="workspace-grid">
                 
                 <!-- Left Panel: SETs Tree -->
@@ -430,6 +503,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="firebase-config.js?v=56"></script>
     
-    <script src="app.js?v=56"></script>
+    <script src="app.js?v=57"></script>
 </body>
 </html>
