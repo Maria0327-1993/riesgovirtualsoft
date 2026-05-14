@@ -1,512 +1,108 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Risk Manager | Control Operativo</title>
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Boxicons for UI icons -->
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <!-- SheetJS for Excel parsing -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="styles.css?v=58">
+    <title>Risk Manager | Portal Operativo</title>
+    <link rel="stylesheet" href="styles.css?v=64">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    
-
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar glass-panel">
             <div class="sidebar-header">
-                <img src="assets/src/img/logo.svg" alt="Risk Manager Logo" class="logo-icon" style="width: 35px; height: auto;">
-                <h1 class="logo-text">Risk <span style="color: var(--accent-primary);">Manager</span></h1>
+                <img src="assets/src/img/logo.svg" alt="Logo" style="width: 35px;">
+                <span class="brand-name">Risk Manager</span>
             </div>
             
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" id="navDashboard"><i class='bx bxs-dashboard'></i> Inicio</a>
-                <a href="#" class="nav-item" id="navWorkspace"><i class='bx bx-grid-alt'></i> Mis Tareas</a>
-                <a href="#" class="nav-item"><i class='bx bx-calendar'></i> Horario</a>
-                <a href="#" class="nav-item"><i class='bx bx-home-alt'></i> Teletrabajo</a>
-                <a href="#" class="nav-item"><i class='bx bx-folder-open'></i> Documentación</a>
+                <a href="#" class="nav-item active" id="navWorkspace"><i class='bx bx-grid-alt'></i> Mis Tareas</a>
+                <a href="#" class="nav-item" id="navHorario"><i class='bx bx-calendar'></i> Horario</a>
+                <a href="#" class="nav-item" id="navTeletrabajo"><i class='bx bx-home-alt'></i> Teletrabajo</a>
+                <a href="#" class="nav-item" id="navDocs"><i class='bx bx-folder-open'></i> Documentación</a>
                 <a href="#" class="nav-item" id="navPermisos"><i class='bx bx-check-shield'></i> Permisos</a>
-                <a href="#" class="nav-item" id="navAprobaciones" style="display: none;"><i class='bx bx-user-check'></i> Aprobaciones</a>
-                <a href="#" class="nav-item"><i class='bx bx-help-circle'></i> Soporte</a>
+                <a href="#" class="nav-item" id="navAprobaciones" style="display: none; background: rgba(59, 130, 246, 0.1); color: var(--accent-primary);"><i class='bx bx-check-double'></i> Aprobaciones</a>
             </nav>
 
             <div class="sidebar-footer">
                 <button id="endShiftBtn" class="btn btn-danger" onclick="handleEndShift()">
-                    <i class='bx bx-log-out-circle'></i> Finalizar Turno
+                    <i class='bx bx-power-off'></i> Finalizar Turno
                 </button>
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
             <header class="top-header glass-panel">
                 <div class="header-left">
-                    <div class="shift-info">
-                        <span class="shift-badge">Turno Mañana</span>
-                        <div class="clock" id="liveClock">00:00:00</div>
-                    </div>
+                    <span class="shift-badge">Turno Mañana</span>
+                    <div class="live-clock" id="liveClock">00:00:00</div>
                 </div>
+                
                 <div class="header-right">
-                    <button class="btn btn-icon" id="themeToggleBtn"><i class='bx bx-moon'></i></button>
-                    
-                    <!-- Notification Bell with Dropdown -->
-                    <div>
-                        <button class="btn btn-icon" id="notificationBtn" style="position:relative;" onclick="toggleNotifications()">
-                            <i class='bx bx-bell'></i>
-                            <span class="notification-badge" id="notificationCount" style="display:none; position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; font-size:10px; padding:2px 5px; border-radius:10px;">0</span>
-                        </button>
-                    </div>
-                    <div class="user-profile" onclick="openProfileModal()" style="cursor: pointer;">
-                        <img src="https://ui-avatars.com/api/?name=Alejandra+S&background=0D8ABC&color=fff" alt="User Avatar" class="avatar">
+                    <button class="icon-btn theme-toggle"><i class='bx bx-moon'></i></button>
+                    <div class="user-profile">
+                        <img src="" alt="Avatar" class="avatar">
                         <div class="user-details">
-                            <span class="user-name">Alejandra S.</span>
-                            <span class="user-role">Gestor de Riesgo</span>
+                            <span class="user-name">Cargando...</span>
+                            <span class="user-role">...</span>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <!-- Vista: Inicio (Dashboard) -->
-            <div id="view-dashboard" class="view-panel active-view" style="padding: 20px;">
-                <div class="module-header" style="margin-bottom: 20px;">
-                    <div>
-                        <h2 class="module-title" style="font-size: 24px; font-weight: 700; color: var(--text-primary);">Panel de Control</h2>
-                        <p class="module-subtitle" style="color: var(--text-secondary);">Resumen operativo de hoy</p>
-                    </div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stats-card glass-panel">
-                        <div class="stats-icon" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-primary);">
-                            <i class='bx bx-home-alt'></i>
-                        </div>
-                        <div class="stats-info">
-                            <h3 id="stat-teletrabajo">0</h3>
-                            <p>En Teletrabajo Hoy</p>
-                        </div>
-                    </div>
-                    <div class="stats-card glass-panel">
-                        <div class="stats-icon" style="background: rgba(16, 185, 129, 0.2); color: var(--success);">
-                            <i class='bx bx-task'></i>
-                        </div>
-                        <div class="stats-info">
-                            <h3 id="stat-tareas">0%</h3>
-                            <p>Tareas Completadas</p>
-                        </div>
-                    </div>
-                    <div class="stats-card glass-panel">
-                        <div class="stats-icon" style="background: rgba(245, 158, 11, 0.2); color: var(--warning);">
-                            <i class='bx bx-user-voice'></i>
-                        </div>
-                        <div class="stats-info">
-                            <h3 id="stat-supervisores">0</h3>
-                            <p>Supervisores Activos</p>
-                        </div>
-                    </div>
-                    <div class="stats-card glass-panel">
-                        <div class="stats-icon" style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6;">
-                            <i class='bx bx-time-five'></i>
-                        </div>
-                        <div class="stats-info">
-                            <h3 id="stat-turno">...</h3>
-                            <p>Tu Turno Actual</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-content-grid">
-                    <div class="dashboard-main glass-panel">
-                        <h4 class="section-title"><i class='bx bx-book-content'></i> Manuales Recientes</h4>
-                        <div id="recent-docs-list" class="recent-list">
-                            <div class="loading-placeholder">Cargando documentación...</div>
-                        </div>
-                    </div>
-                    <div class="dashboard-side glass-panel">
-                        <h4 class="section-title"><i class='bx bx-rocket'></i> Accesos Rápidos</h4>
-                        <div class="quick-actions">
-                            <button class="action-btn" id="quick-horario">
-                                <i class='bx bx-calendar'></i> Ver Horario
-                            </button>
-                            <button class="action-btn" id="quick-teletrabajo">
-                                <i class='bx bx-home-circle'></i> Mi Teletrabajo
-                            </button>
-                            <button class="action-btn" id="quick-tareas">
-                                <i class='bx bx-list-check'></i> Mis Tareas
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dashboard Workspace -->
-            <div id="view-workspace" class="view-panel" style="display: none;">
+            <!-- Workspace Section -->
+            <div id="view-workspace" class="view-panel active-view">
                 <div class="workspace-grid">
-                
-                <!-- Left Panel: SETs Tree -->
-                <section class="panel glass-panel">
-                    <div class="panel-title">
-                        <i class='bx bx-list-ul'></i> Procesos (SETs)
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="font-size: 12px; color: var(--text-secondary); margin-bottom: 5px; display: block;">Selecciona tu SET a trabajar:</label>
-                        <select id="activeSetSelect" class="modern-input" style="padding: 8px;">
-                            <option value="Todos">Mostrar Todos</option>
+                    <aside class="left-panel glass-panel">
+                        <select id="activeSetSelect" class="form-select glass-panel">
+                            <option value="" disabled selected>Selecciona tu SET...</option>
                         </select>
-                    </div>
-
-                    <div class="tree-container">
-                        <!-- SET 1 -->
-                        <div class="tree-item">
-                            <div class="tree-header" onclick="toggleTree(this)">
-                                <i class='bx bx-chevron-down'></i>
-                                <span>1. Revisión de Apuestas Casino</span>
-                                <span class="badge in-progress">En Proceso</span>
-                            </div>
-                            <div class="tree-children show">
-                                <!-- task -->
-                                <div class="task-item active" onclick="selectTask(1)">
-                                    <i class='bx bx-file-blank'></i> Revisión de GGR Casino
-                                    <div class="task-status status-pending"></div>
-                                </div>
-                                <div class="task-item" onclick="selectTask(2)">
-                                    <i class='bx bx-file-blank'></i> Validación SEON
-                                    <div class="task-status status-completed"></div>
-                                </div>
+                        <div class="tree-container"></div>
+                    </aside>
+                    <section class="right-panel glass-panel">
+                        <div class="task-detail-content">
+                            <div class="empty-state">
+                                <i class='bx bx-select-multiple'></i>
+                                <p>Selecciona una tarea para ver los detalles</p>
                             </div>
                         </div>
-
-                        <!-- SET 2 -->
-                        <div class="tree-item">
-                            <div class="tree-header" onclick="toggleTree(this)">
-                                <i class='bx bx-chevron-right'></i>
-                                <span>2. Revisión de Eventos</span>
-                                <span class="badge pending">Pendiente</span>
-                            </div>
-                            <div class="tree-children">
-                                <div class="task-item" onclick="selectTask(3)">
-                                    <i class='bx bx-file-blank'></i> Eventos Deportivos
-                                    <div class="task-status status-pending"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Center Panel: Task Detail -->
-                <section class="panel detail-panel glass-panel">
-                    <div class="detail-header">
-                        <h2 class="panel-title" id="currentTaskTitle">Revisión de GGR Casino</h2>
-                        <button class="btn btn-outline" id="helpBtn">
-                            <i class='bx bx-book-open'></i> Instructivo
-                        </button>
-                    </div>
-
-                    <div class="task-controls">
-                        <label>Estado de la Tarea:</label>
-                        <div class="status-buttons">
-                            <button class="btn-status pending active"><i class='bx bx-time'></i> Pendiente</button>
-                            <button class="btn-status in-progress"><i class='bx bx-loader-alt bx-spin-hover'></i> En Proceso</button>
-                            <button class="btn-status completed"><i class='bx bx-check-circle'></i> Finalizada</button>
-                            <button class="btn-status not-done" onclick="openExceptionModal()"><i class='bx bx-x-circle'></i> No Realizada</button>
-                        </div>
-                    </div>
-
-                    <div class="task-form">
-                        <label>Notas Técnicas (Opcional):</label>
-                        <textarea id="taskObservation" placeholder="Ingresa observaciones de la ejecución..." class="modern-input"></textarea>
-                        
-                        <div class="action-bar">
-                            <button class="btn btn-primary" id="saveTaskBtn">Guardar Progreso</button>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Right Panel: Context & KPIs -->
-                <section class="panel right-panel glass-panel">
-                    <h2 class="panel-title"><i class='bx bx-bar-chart-alt-2'></i> Progreso del Turno</h2>
-                    
-                    <div class="kpi-card">
-                        <div class="kpi-circle">
-                            <svg viewBox="0 0 36 36" class="circular-chart">
-                                <path class="circle-bg"
-                                    d="M18 2.0845
-                                    a 15.9155 15.9155 0 0 1 0 31.831
-                                    a 15.9155 15.9155 0 0 1 0 -31.831"
-                                />
-                                <path class="circle"
-                                    stroke-dasharray="30, 100"
-                                    d="M18 2.0845
-                                    a 15.9155 15.9155 0 0 1 0 31.831
-                                    a 15.9155 15.9155 0 0 1 0 -31.831"
-                                />
-                                <text x="18" y="20.35" class="percentage">30%</text>
-                            </svg>
-                        </div>
-                        <div class="kpi-stats">
-                            <p><strong>12</strong> Tareas Asignadas</p>
-                            <p><strong>4</strong> Finalizadas</p>
-                            <p><strong>8</strong> Pendientes</p>
-                        </div>
-                    </div>
-
-                    <div class="documentation-shortcut">
-                        <h3>Acceso Rápido Documentos</h3>
-                        <a href="Procesos/Instructivo de validación de GGR Casino.pdf" target="_blank" class="doc-link">
-                            <i class='bx bxs-file-pdf' style="color: #FF5A5A;"></i> Instructivo GGR Casino
-                        </a>
-                        <a href="Procesos/VALIDACIÓN DE ABUSO DE BONOS EN CAMPAÑAS DE CRM.pdf" target="_blank" class="doc-link">
-                            <i class='bx bxs-file-pdf' style="color: #FF5A5A;"></i> Validación ABUSO Bonos
-                        </a>
-                    </div>
-                </section>
+                    </section>
                 </div>
             </div>
 
-            <!-- Vista: Mi Turno -->
-            <div id="view-horario" class="view-panel" style="display: none; padding: 20px;">
-                <h2 class="panel-title" style="margin-bottom: 20px;"><i class='bx bx-calendar'></i> Horario Semanal</h2>
-                <div class="glass-panel" style="padding: 20px; overflow-x: auto; position: relative;">
-                    <p style="color: var(--text-secondary); margin-bottom: 20px;">Datos leídos desde 'Horario/Horario 2026.xlsx'</p>
-                    
-                    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
-                        <label style="color: var(--text-secondary); font-size: 14px;">Seleccionar Semana:</label>
-                        <select id="weekSelector" class="modern-input" style="padding: 8px; width: auto; min-width: 250px; background: var(--bg-dark);">
-                            <option value="">Cargando semanas...</option>
-                        </select>
-                    </div>
-
-                    <table class="modern-table" style="width: 100%; border-collapse: collapse; text-align: center; min-width: 800px;">
-                        <thead id="scheduleTableHead">
-                            <!-- Headers dinámicos -->
-                        </thead>
-                        <tbody id="scheduleTableBody">
-                            <tr>
-                                <td style="padding: 20px; color: var(--text-secondary);">Cargando horario...</td>
-                            </tr>
-                        </tbody>
+            <!-- Horario Section -->
+            <div id="view-horario" class="view-panel" style="display: none;">
+                <div class="glass-panel" style="padding: 20px;">
+                    <select id="weekSelector" class="form-select glass-panel" style="margin-bottom: 20px;">
+                        <option value="">Cargando semanas...</option>
+                    </select>
+                    <table class="schedule-table">
+                        <thead><tr id="scheduleTableHeader"></tr></thead>
+                        <tbody id="scheduleTableBody"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Vista: Teletrabajo -->
-            <div id="view-teletrabajo" class="view-panel" style="display: none; padding: 20px;">
-                <h2 class="panel-title" style="margin-bottom: 20px;"><i class='bx bx-home-alt'></i> Cronograma de Teletrabajo</h2>
-                <div class="glass-panel" style="padding: 20px; overflow-x: auto;">
-                    <p style="color: var(--text-secondary); margin-bottom: 20px;">Datos leídos desde 'Teletrabajo/Teletrabajo.xlsx'</p>
-                    
-                    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
-                        <label style="color: var(--text-secondary); font-size: 14px;">Seleccionar Semana:</label>
-                        <select id="teletrabajoWeekSelector" class="modern-input" style="padding: 8px; width: auto; min-width: 250px; background: var(--bg-dark);">
-                            <option value="">Cargando semanas...</option>
-                        </select>
-                    </div>
-
-                    <table class="modern-table" style="width: 100%; border-collapse: collapse; text-align: center; min-width: 800px;">
-                        <thead id="teletrabajoTableHead">
-                            <!-- Headers dinámicos -->
-                        </thead>
-                        <tbody id="teletrabajoTableBody">
-                            <tr>
-                                <td style="padding: 20px; color: var(--text-secondary);">Cargando teletrabajo...</td>
-                            </tr>
-                        </tbody>
+            <!-- Teletrabajo Section -->
+            <div id="view-teletrabajo" class="view-panel" style="display: none;">
+                <div class="glass-panel" style="padding: 20px;">
+                    <select id="teletrabajoWeekSelector" class="form-select glass-panel" style="margin-bottom: 20px;">
+                        <option value="">Cargando semanas...</option>
+                    </select>
+                    <table class="schedule-table">
+                        <tbody id="teletrabajoTableBody"></tbody>
                     </table>
                 </div>
             </div>
-
-            <!-- Vista: Documentación -->
-            <div id="view-docs" class="view-panel" style="display: none; padding: 20px;">
-                <h2 class="panel-title" style="margin-bottom: 20px;"><i class='bx bx-folder-open'></i> Biblioteca de Procesos</h2>
-                <div class="docs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
-                    <!-- Se inyectarán dinámicamente -->
-                </div>
-            </div>
-
-            <!-- Vista: Permisos -->
-            <div id="view-permisos" class="view-panel" style="display: none; padding: 20px;">
-                <h2 class="panel-title" style="margin-bottom: 20px;"><i class='bx bx-check-shield'></i> Solicitud de Permisos</h2>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" id="permisosLayout">
-                    <div class="glass-panel" style="padding: 20px;" id="crearPermisoPanel">
-                        <h3>Crear Nueva Solicitud</h3>
-                        <!-- Usamos FormSubmit para enviar por correo al supervisor -->
-                        <form id="permisosForm" action="https://formsubmit.co/maria.sanchez@virtualsoft.tech" method="POST" class="task-form" style="margin-top: 15px;">
-                            <!-- Opciones para FormSubmit -->
-                            <input type="hidden" name="_subject" value="Nueva Solicitud de Permiso - Gestor Riesgo">
-                            <input type="hidden" name="_captcha" value="false">
-                            
-                            <label>Nombre del Gestor</label>
-                            <input type="text" name="Gestor" class="modern-input" id="permisoGestorName" readonly required style="min-height: 40px; margin-bottom: 10px;">
-
-                            <label>Tipo de Permiso</label>
-                            <select name="Tipo_Permiso" id="tipoPermisoSelect" class="modern-input" required style="min-height: 40px; margin-bottom: 10px;">
-                                <option value="Vacaciones">Vacaciones</option>
-                                <option value="Falta Justificada">Falta Justificada</option>
-                                <option value="Llegada Tarde">Llegada Tarde</option>
-                                <option value="Calamidad">Calamidad</option>
-                                <option value="Cita Medica">Cita Médica</option>
-                                <option value="Otro">Otro</option>
-                            </select>
-
-                            <div id="otroPermisoContainer" style="display: none; margin-bottom: 10px;">
-                                <label>Especifique</label>
-                                <input type="text" name="Especificacion_Otro" id="otroPermisoInput" class="modern-input" placeholder="¿Qué tipo de permiso?" style="min-height: 40px; margin-top: 5px;">
-                            </div>
-
-                            <label>Fecha del Permiso</label>
-                            <input type="date" name="Fecha" class="modern-input" required style="min-height: 40px; margin-bottom: 10px;">
-
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                                <div>
-                                    <label>Hora de Inicio</label>
-                                    <input type="time" name="Hora_Inicio" id="permisoHoraInicio" class="modern-input" required style="min-height: 40px; width: 100%;">
-                                </div>
-                                <div>
-                                    <label>Hora de Fin</label>
-                                    <input type="time" name="Hora_Fin" id="permisoHoraFin" class="modern-input" required style="min-height: 40px; width: 100%;">
-                                </div>
-                            </div>
-
-                            <label>Motivo y Justificación</label>
-                            <textarea name="Justificacion" class="modern-input" required style="min-height: 100px;"></textarea>
-
-                            <button type="submit" class="btn btn-primary" style="margin-top: 15px;"><i class='bx bx-send'></i> Enviar a Supervisor</button>
-                        </form>
-                    </div>
-
-                    <div class="glass-panel" style="padding: 20px;">
-                        <h3>Histórico de Permisos</h3>
-                        <p style="color: var(--text-secondary); margin-top: 10px; font-size: 14px;">Solicitudes previas leídas desde equipo de Riesgos (Permisos/Permisos Gestores.xlsx):</p>
-                        <div id="historicoPermisosList" style="margin-top: 20px; overflow-y: auto; max-height: 400px;">
-                            <div style="color: var(--text-secondary); padding: 10px;"><i class='bx bx-loader-alt bx-spin'></i> Extrayendo historial...</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Vista: Aprobaciones (Solo Admin/Supervisor) -->
-            <div id="view-aprobaciones" class="view-panel" style="display: none; padding: 20px;">
-                <h2 class="panel-title" style="margin-bottom: 20px; color: var(--warning);"><i class='bx bx-user-check'></i> Gestión de Usuarios</h2>
-                <div class="glass-panel" style="padding: 20px; border: 1px solid var(--warning);">
-                    <p style="margin-bottom: 15px; color: var(--text-secondary);">Listado de usuarios registrados en la plataforma. Los nuevos requerirán tu aprobación.</p>
-                    
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid var(--glass-border);">
-                                    <th style="padding: 12px; color: var(--accent-primary); text-align: left;">Nombre</th>
-                                    <th style="padding: 12px; color: var(--accent-primary); text-align: left;">Correo</th>
-                                    <th style="padding: 12px; color: var(--accent-primary); text-align: left;">Rol Solicitado</th>
-                                    <th style="padding: 12px; color: var(--accent-primary); text-align: center;">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pendingUsersTableBody">
-                                <!-- Se inyecta dinámicamente desde app.js -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Tabla de Permisos Pendientes -->
-                <h2 class="panel-title" style="margin-top: 30px; margin-bottom: 20px; color: var(--accent-primary);"><i class='bx bx-time-five'></i> Permisos Pendientes</h2>
-                <div class="glass-panel" style="padding: 20px; border: 1px solid var(--accent-primary);">
-                    <p style="margin-bottom: 15px; color: var(--text-secondary);">Solicitudes de permisos de los gestores que requieren tu aprobación.</p>
-                    
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid var(--glass-border);">
-                                    <th style="padding: 12px; color: var(--accent-primary); text-align: left;">Gestor</th>
-                                    <th style="padding: 12px; color: var(--accent-primary); text-align: left;">Tipo</th>
-                                    <th style="padding: 12px; color: var(--accent-primary); text-align: left;">Fecha y Hora</th>
-                                    <th style="padding: 12px; color: var(--accent-primary); text-align: left;">Motivo</th>
-                                    <th style="padding: 12px; color: var(--accent-primary); text-align: center;">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pendingPermissionsTableBody">
-                                <!-- Se inyecta dinámicamente desde app.js -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
         </main>
     </div>
 
-    <!-- Modal for Exceptions -->
-    <div id="exceptionModal" class="modal-overlay">
-        <div class="modal glass-panel">
-            <h2>Justificar Tarea No Realizada</h2>
-            <p>Por favor, indica el motivo por el cual no pudiste completar esta tarea.</p>
-            <select id="exceptionReason" class="modern-input" style="margin-bottom: 15px;">
-                <option value="" disabled selected>Seleccione una razón</option>
-                <option value="Falta de Accesos">Falta de Accesos</option>
-                <option value="Sistema Caído">Sistema Caído</option>
-                <option value="Falta de Tiempo">Falta de Tiempo</option>
-                <option value="Dependencia de otra área">Dependencia de otra área</option>
-                <option value="Reasignada por el Supervisor">Reasignada por el Supervisor</option>
-                <option value="Otro">Otro</option>
-            </select>
-            <textarea id="exceptionDetails" placeholder="Detalla el problema..." class="modern-input"></textarea>
-            <div class="modal-actions">
-                <button class="btn btn-outline" onclick="closeModal('exceptionModal')">Cancelar</button>
-                <button class="btn btn-danger" onclick="confirmException()">Confirmar Excepción</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for Profile / Change Password -->
-    <div id="profileModal" class="modal-overlay">
-        <div class="modal glass-panel">
-            <h2><i class='bx bx-user-circle'></i> Mi Perfil</h2>
-            <p>Puedes cambiar tu contraseña a continuación:</p>
-            <div class="input-group" style="margin-bottom: 15px; position: relative;">
-                <input type="password" id="newPasswordInput" class="modern-input" placeholder="Nueva Contraseña" style="min-height: 40px; width: 100%; padding-right: 40px;">
-                <i class='bx bx-show toggle-password' style="position: absolute; right: 14px; top: 12px; cursor: pointer; color: var(--text-primary); font-size: 20px;" onclick="toggleProfilePassword(this)"></i>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-outline" onclick="closeModal('profileModal')">Cancelar</button>
-                <button class="btn btn-primary" onclick="changePassword()">Guardar Cambios</button>
-            </div>
-            <p id="passwordChangeMsg" style="display: none; margin-top: 10px; font-size: 14px; text-align: center;"></p>
-        </div>
-    </div>
-
-    <!-- Notification Dropdown Moved to Body to Avoid Z-index Stacking Issues -->
-    <div id="notificationDropdown" class="glass-panel" style="display: none; position: fixed; top: 80px; right: 20px; width: 320px; max-height: 400px; overflow-y: auto; z-index: 9999999; padding: 15px; box-shadow: 0px 10px 50px rgba(0,0,0,0.8); background: var(--bg-panel); border: 1px solid var(--accent-primary);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid var(--glass-border);">
-            <h4 style="color: var(--text-primary); margin:0;"><i class='bx bx-bell'></i> Notificaciones</h4>
-            <button class="btn btn-outline" style="padding: 2px 5px; font-size: 11px; width: auto;" onclick="markAllAsRead()">Marcar leídas</button>
-        </div>
-        <div id="notificationList" style="display: flex; flex-direction: column; gap: 8px;">
-            <p style="font-size: 12px; color: var(--text-secondary); text-align: center; padding: 10px;">No tienes notificaciones nuevas.</p>
-        </div>
-    </div>
-
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="firebase-config.js?v=56"></script>
-    
-    <script src="app.js?v=58"></script>
-<script>
-    function handleEndShift() {
-        if(confirm("¿Seguro que deseas salir?")) {
-            localStorage.removeItem("riskOps_currentUser");
-            window.location.href = "login.html";
-        }
-    }
-</script>
+    <script src="firebase-config.js"></script>
+    <script src="app.js?v=64"></script>
 </body>
 </html>
-
-
