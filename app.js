@@ -1,4 +1,4 @@
-// Risk Manager - App Logic v59
+// Risk Manager - App Logic v60
 function removeAccents(str) {
     if (!str) return "";
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -40,15 +40,6 @@ async function initApp() {
             avatarEl.src = `assets/src/img/${clean}.png`;
             avatarEl.onerror = () => { avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff`; };
         }
-
-        if (currentUser.role === 'Admin' || currentUser.role === 'Supervisor') {
-            document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
-            const vDash = document.getElementById('view-dashboard');
-            if(vDash) vDash.style.display = 'block';
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            const nDash = document.getElementById('navDashboard');
-            if(nDash) nDash.classList.add('active');
-        }
     }
 
     loadSchedule();
@@ -87,17 +78,19 @@ async function loadSchedule() {
         
         const selector = document.getElementById('weekSelector');
         if(selector) {
-            selector.innerHTML = json.slice(1).map((row, i) => `<option value="${i+1}">${row[0]}</option>`).join('');
-            selector.onchange = (e) => renderScheduleTable(json[e.target.value]);
-            renderScheduleTable(json[1]);
+            // Filtrar solo las filas que contienen "Semana"
+            const weeks = [];
+            json.forEach((row, i) => {
+                if(row[0] && row[0].toString().toLowerCase().includes('semana')) {
+                    weeks.push({ name: row[0], index: i });
+                }
+            });
+
+            selector.innerHTML = weeks.map(w => `<option value="${w.index}">${w.name}</option>`).join('');
+            selector.onchange = (e) => renderGroupedTable('scheduleTableBody', json, parseInt(e.target.value));
+            if(weeks.length > 0) renderGroupedTable('scheduleTableBody', json, weeks[0].index);
         }
     } catch(e) { console.error(e); }
-}
-
-function renderScheduleTable(row) {
-    const body = document.getElementById('scheduleTableBody');
-    if(!body || !row) return;
-    body.innerHTML = `<tr>${row.map(c => `<td>${c || '-'}</td>`).join('')}</tr>`;
 }
 
 async function loadTeletrabajo() {
@@ -111,32 +104,60 @@ async function loadTeletrabajo() {
         
         const selector = document.getElementById('teletrabajoWeekSelector');
         if(selector) {
-            selector.innerHTML = json.slice(1).map((row, i) => `<option value="${i+1}">${row[0]}</option>`).join('');
-            selector.onchange = (e) => renderTeleTable(json[e.target.value]);
-            renderTeleTable(json[1]);
+            const weeks = [];
+            json.forEach((row, i) => {
+                if(row[0] && row[0].toString().toLowerCase().includes('semana')) {
+                    weeks.push({ name: row[0], index: i });
+                }
+            });
+
+            selector.innerHTML = weeks.map(w => `<option value="${w.index}">${w.name}</option>`).join('');
+            selector.onchange = (e) => renderGroupedTable('teletrabajoTableBody', json, parseInt(e.target.value));
+            if(weeks.length > 0) renderGroupedTable('teletrabajoTableBody', json, weeks[0].index);
         }
     } catch(e) { console.error(e); }
 }
 
-function renderTeleTable(row) {
-    const body = document.getElementById('teletrabajoTableBody');
-    if(!body || !row) return;
-    body.innerHTML = `<tr>${row.map(c => `<td>${c || '-'}</td>`).join('')}</tr>`;
+function renderGroupedTable(bodyId, json, startIndex) {
+    const body = document.getElementById(bodyId);
+    if(!body) return;
+    body.innerHTML = '';
+    
+    // Empezamos desde la fila siguiente a la "Semana"
+    for(let i = startIndex + 1; i < json.length; i++) {
+        const row = json[i];
+        // Si llegamos a otra "Semana" o a una fila vacía significante, paramos
+        if(!row[0] || row[0].toString().toLowerCase().includes('semana')) break;
+        if(row[0] === 'GESTOR') continue; // Saltar cabeceras internas
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = row.map(cell => `<td>${cell || '-'}</td>`).join('');
+        body.appendChild(tr);
+    }
 }
 
 function renderDocs() {
     const grid = document.querySelector('.docs-grid');
     const recent = document.getElementById('recent-docs-list');
     const archivos = ["Instructivo de validación de GGR Casino.pdf", "Política Procedimiento De Aprobación De Retiros.pdf", "VALIDACIÓN DE ABUSO DE BONOS EN CAMPAÑAS DE CRM.pdf"];
-    const html = archivos.map(f => `<div class="glass-panel" style="padding:10px; display:flex; gap:10px; cursor:pointer;" onclick="window.open('Procesos/${f}')"><i class="bx bx-file"></i><span>${f}</span></div>`).join('');
+    const html = archivos.map(f => `
+        <div class="glass-panel" style="padding:10px; display:flex; gap:10px; cursor:pointer; align-items:center;" onclick="window.open('Procesos/${f}')">
+            <i class="bx bxs-file-pdf" style="color:#FF5A5A; font-size:20px;"></i>
+            <span style="font-size:12px;">${f}</span>
+        </div>`).join('');
     if(grid) grid.innerHTML = html;
     if(recent) recent.innerHTML = html;
 }
 
 async function loadDashboardStats() {
-    // Stats simplification
     const statT = document.getElementById('stat-teletrabajo');
-    if(statT) statT.textContent = '8'; // Mock value for now
+    if(statT) statT.textContent = '8'; 
 }
 
 window.onload = initApp;
+window.handleEndShift = function() {
+    if(confirm("¿Seguro que deseas salir?")) {
+        localStorage.removeItem("riskOps_currentUser");
+        window.location.href = "login.html";
+    }
+};
