@@ -1,4 +1,4 @@
-:root, [data-theme="dark"] {
+﻿:root, [data-theme="dark"] {
     /* Color Palette - Dark Premium Theme */
     --bg-primary: #0B0E14;
     --bg-secondary: #131720;
@@ -72,7 +72,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: var(--bg-dark);
+    background: var(var(--bg-primary));
     z-index: 99999999;
     flex-direction: column;
     justify-content: center;
@@ -651,3 +651,4 @@ select.modern-input option { background-color: #ffffff; color: #000000; }
 .modal-desc { color: var(--text-secondary); font-size: 14px; margin-bottom: 8px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: var(--spacing-sm); margin-top: var(--spacing-md); }
 .modal-actions .btn { width: auto; }
+

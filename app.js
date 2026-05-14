@@ -1,4 +1,4 @@
-// Helper para quitar acentos
+ï»¿// Helper para quitar acentos
 function removeAccents(str) {
     if (!str) return "";
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -72,7 +72,7 @@ async function loadExcelTasks() {
                     name: taskName,
                     detail: row['Detalle de Tarea'],
                     time: row['Horario'],
-                    day: row['Día']
+                    day: row['Dï¿½a']
                 });
             }
             allTasks.push({ ...row, id: index });
@@ -199,7 +199,7 @@ window.onload = initApp;
 
 
 window.handleEndShift = function() {
-    if(confirm("¿Seguro que deseas salir?")) {
+    if(confirm("ï¿½Seguro que deseas salir?")) {
         localStorage.removeItem("riskOps_currentUser");
         window.location.href = "login.html";
     }
@@ -217,3 +217,24 @@ async function loadDashboardStats() {
         if(turnoEl && currentUser) turnoEl.textContent = currentUser.shift;
     } catch(e) { console.error(e); }
 }
+
+window.toggleNotifications = function() {
+    const drop = document.getElementById("notificationDropdown");
+    if(drop) drop.style.display = drop.style.display === "none" ? "block" : "none";
+};
+
+window.openProfileModal = function() {
+    const modal = document.getElementById("profileModal");
+    if(modal) modal.classList.add("active");
+};
+
+window.closeModal = function(id) {
+    const modal = document.getElementById(id);
+    if(modal) modal.classList.remove("active");
+};
+
+window.markAllAsRead = function() {
+    const count = document.getElementById("notificationCount");
+    if(count) count.style.display = "none";
+};
+
