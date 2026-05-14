@@ -652,3 +652,7 @@ select.modern-input option { background-color: #ffffff; color: #000000; }
 .modal-actions { display: flex; justify-content: flex-end; gap: var(--spacing-sm); margin-top: var(--spacing-md); }
 .modal-actions .btn { width: auto; }
 
+
+.modal-overlay { display: none !important; }
+.modal-overlay.active { display: flex !important; }
+
