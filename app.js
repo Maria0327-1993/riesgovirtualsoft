@@ -616,7 +616,7 @@ function initApp() {
                 this.onerror = null;
                 this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=0D8ABC&color=fff`;
             };
-            avatarEl.src = `assets/src/img/${cleanName}.svg`;
+            avatarEl.src = `assets/src/img/${cleanName}.png`;
         }
 
         // Show Aprobaciones tab for Supervisor/Admin
