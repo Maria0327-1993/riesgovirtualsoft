@@ -644,12 +644,14 @@ function initApp() {
             if(navWorkspace) navWorkspace.style.display = 'none';
             if(viewWorkspace) viewWorkspace.style.display = 'none';
             
-            // Forzar vista de Aprobaciones como inicial
-            if(viewAprobaciones) {
-                document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
-                viewAprobaciones.style.display = 'block';
+            // Forzar vista de Dashboard como inicial
+            if(document.getElementById('dashboard-module')) {
+                document.querySelectorAll('.module').forEach(v => v.classList.remove('active'));
+                document.getElementById('dashboard-module').classList.add('active');
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                navAprobaciones.classList.add('active');
+                const navDashboard = Array.from(document.querySelectorAll('.nav-item')).find(n => n.textContent.includes('Inicio'));
+                if(navDashboard) navDashboard.classList.add('active');
+                loadDashboardStats();
             }
             
             // Ocultar formulario de pedir permiso
@@ -841,18 +843,28 @@ function initApp() {
             document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
 
             // Mostrar la correcta
-            if(item.textContent.includes('Mis Tareas') || item.textContent.includes('Workspace')) document.getElementById('view-workspace').style.display = 'block';
-            if(item.textContent.includes('Horario')) document.getElementById('view-horario').style.display = 'block';
-            if(item.textContent.includes('Teletrabajo')) document.getElementById('view-teletrabajo').style.display = 'block';
-            if(item.textContent.includes('DocumentaciÃ³n')) document.getElementById('view-docs').style.display = 'block';
-            if(item.textContent.includes('Permisos')) document.getElementById('view-permisos').style.display = 'block';
+            if(item.textContent.includes('Inicio')) {
+                document.getElementById('dashboard-module').classList.add('active');
+                loadDashboardStats();
+            }
+            if(item.textContent.includes('Mis Tareas') || item.textContent.includes('Workspace')) document.getElementById('view-workspace').classList.add('active');
+            if(item.textContent.includes('Horario')) document.getElementById('view-horario').classList.add('active');
+            if(item.textContent.includes('Teletrabajo')) document.getElementById('view-teletrabajo').classList.add('active');
+            if(item.textContent.includes('DocumentaciÃ³n')) document.getElementById('view-docs').classList.add('active');
+            if(item.textContent.includes('Permisos')) document.getElementById('view-permisos').classList.add('active');
             if(item.textContent.includes('Aprobaciones')) {
-                document.getElementById('view-aprobaciones').style.display = 'block';
+                document.getElementById('view-aprobaciones').classList.add('active');
                 renderPendingUsers();
                 renderPendingPermissions();
             }
         });
     });
+
+    // Cargar dashboard por defecto si no es Admin
+    if(currentUser && currentUser.role !== 'Admin' && currentUser.role !== 'Supervisor') {
+        const navDashboard = Array.from(document.querySelectorAll('.nav-item')).find(n => n.textContent.includes('Inicio'));
+        if(navDashboard) navDashboard.click();
+    }
 
     // Inyectar documentos reales de la carpeta "Procesos" en el MÃ³dulo de Docs
     const docsGrid = document.querySelector('.docs-grid');
@@ -1523,5 +1535,71 @@ async function changePassword() {
         msg.textContent = 'Error actualizando contraseÃ±a.';
         msg.style.color = 'var(--danger)';
         console.error(e);
+    }
+}
+
+// Dashboard Logic
+async function loadDashboardStats() {
+    try {
+        // 1. Teletrabajo Stats (People working from home today)
+        const teleResponse = await fetch('Teletrabajo/Teletrabajo.xlsx?v=' + Date.now());
+        if(teleResponse.ok) {
+            const data = await teleResponse.arrayBuffer();
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
+            
+            const days = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+            const todayName = days[new Date().getDay()];
+            
+            let countToday = 0;
+            rows.forEach(r => {
+                if(r && r[1] && String(r[1]).toLowerCase().includes(todayName.toLowerCase())) {
+                    countToday++;
+                }
+            });
+            const teleEl = document.getElementById('stat-teletrabajo');
+            if(teleEl) teleEl.textContent = countToday;
+        }
+
+        // 2. Tareas Stats (Completion %)
+        const totalTasks = document.querySelectorAll('.task-item').length;
+        const completedTasks = document.querySelectorAll('.task-item .status-completed').length;
+        const notDoneTasks = document.querySelectorAll('.task-item .status-not-done').length;
+        const finalized = completedTasks + notDoneTasks;
+        
+        let percentage = 0;
+        if (totalTasks > 0) percentage = Math.round((finalized / totalTasks) * 100);
+        
+        const tasksEl = document.getElementById('stat-tareas');
+        if(tasksEl) tasksEl.textContent = percentage + '%';
+
+        // 3. Supervisores Activos
+        const supEl = document.getElementById('stat-supervisores');
+        if(supEl) {
+            const snap = await database.ref('users').once('value');
+            if(snap.exists()) {
+                const users = snap.val();
+                const supCount = Object.values(users).filter(u => u.role === 'Supervisor' || u.role === 'Admin').length;
+                supEl.textContent = supCount;
+            }
+        }
+
+        // 4. Tu Turno
+        const turnoEl = document.getElementById('stat-turno');
+        if(turnoEl && currentUser) turnoEl.textContent = currentUser.shift;
+
+        // 5. Recent Docs
+        const docList = document.getElementById('recent-docs-list');
+        if(docList) {
+            const docs = [
+                { name: "Instructivo GGR Casino", file: "Instructivo de validación de GGR Casino.pdf", date: "Hoy" },
+                { name: "Política Retiros", file: "Política Procedimiento De Aprobación De Retiros.pdf", date: "Ayer" }
+            ];
+            docList.innerHTML = docs.map(d => \ <div class="recent-doc-item" onclick="window.open('Procesos/\\', '_blank')"> <i class='bx bxs-file-pdf' style="color: #FF5A5A; font-size: 24px;"></i> <div style="flex-grow: 1;"> <div style="font-size: 14px; font-weight: 500;">\\</div> <div style="font-size: 11px; color: var(--text-secondary);">Actualizado \\</div> </div> <i class='bx bx-chevron-right'></i> </div> \).join('');
+        }
+
+    } catch (e) {
+        console.error("Error loading dashboard stats:", e);
     }
 }
