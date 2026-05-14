@@ -1,4 +1,4 @@
-// Risk Manager - App Logic v62 (FULL RESTORE)
+// Risk Manager - App Logic v63 (ULTRA ROBUST)
 function removeAccents(str) {
     if (!str) return "";
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -57,8 +57,8 @@ async function initApp() {
             const txt = item.textContent;
             if(txt.includes('Inicio')) { document.getElementById('view-dashboard').style.display = 'block'; loadDashboardStats(); }
             else if(txt.includes('Tareas')) document.getElementById('view-workspace').style.display = 'block';
-            else if(txt.includes('Horario')) { document.getElementById('view-horario').style.display = 'block'; loadSchedule(); }
-            else if(txt.includes('Teletrabajo')) { document.getElementById('view-teletrabajo').style.display = 'block'; loadTeletrabajo(); }
+            else if(txt.includes('Horario')) document.getElementById('view-horario').style.display = 'block';
+            else if(txt.includes('Teletrabajo')) document.getElementById('view-teletrabajo').style.display = 'block';
             else if(txt.includes('Documentación')) document.getElementById('view-docs').style.display = 'block';
             else if(txt.includes('Permisos')) document.getElementById('view-permisos').style.display = 'block';
             else if(txt.includes('Aprobaciones')) document.getElementById('view-aprobaciones').style.display = 'block';
@@ -68,9 +68,10 @@ async function initApp() {
     loadDashboardStats();
 }
 
-// LOGICA DE TAREAS (SETS)
+// LOGICA DE TAREAS (SETS) CON FILTRO
 async function loadExcelTasks() {
     const container = document.querySelector('.tree-container');
+    const select = document.getElementById('activeSetSelect');
     if(!container) return;
     try {
         const res = await fetch('Tareas Riesgo/Tareas de Riesgo.xlsx?v=' + Date.now());
@@ -85,25 +86,36 @@ async function loadExcelTasks() {
             if(!grouped[set]) grouped[set] = [];
             grouped[set].push(row);
         });
-        renderTree(grouped);
-    } catch(e) { console.error(e); }
+
+        if(select) {
+            select.innerHTML = '<option value="" disabled selected>Selecciona tu SET a trabajar...</option>';
+            Object.keys(grouped).sort().forEach(s => {
+                select.innerHTML += `<option value="${s}">${s}</option>`;
+            });
+            select.onchange = (e) => {
+                const filtered = {};
+                filtered[e.target.value] = grouped[e.target.value];
+                renderTree(filtered);
+            };
+        }
+    } catch(e) { console.error("Error cargando SETS:", e); }
 }
 
 function renderTree(grouped) {
     const container = document.querySelector('.tree-container');
     if(!container) return;
     container.innerHTML = '';
-    Object.keys(grouped).sort().forEach(set => {
+    Object.keys(grouped).forEach(set => {
         const div = document.createElement('div');
-        div.className = 'tree-item';
+        div.className = 'tree-item open';
         div.innerHTML = `
-            <div class="tree-header" onclick="this.parentElement.classList.toggle('open')">
-                <i class="bx bx-chevron-right"></i>
-                <i class="bx bx-folder"></i>
+            <div class="tree-header">
+                <i class="bx bx-chevron-down"></i>
+                <i class="bx bx-folder-open"></i>
                 <span>${set}</span>
                 <span class="badge pending">${grouped[set].length}</span>
             </div>
-            <div class="tree-children">
+            <div class="tree-children show">
                 ${grouped[set].map(t => `
                     <div class="task-item" onclick="selectTask(${JSON.stringify(t).replace(/"/g, '&quot;')})">
                         <i class="bx bx-file"></i>
@@ -117,8 +129,6 @@ function renderTree(grouped) {
 }
 
 function selectTask(task) {
-    document.getElementById('view-dashboard').style.display = 'none';
-    document.getElementById('view-workspace').style.display = 'block';
     const detail = document.querySelector('.task-detail-content');
     if(detail) {
         detail.innerHTML = `
@@ -132,38 +142,33 @@ function selectTask(task) {
     }
 }
 
-// LOGICA DE HORARIO Y TELETRABAJO
-async function loadSchedule() {
+// LOGICA DE TABLAS ROBUSTA
+async function loadTableData(path, selectorId, bodyId, isTele) {
     try {
-        const res = await fetch('Horario/Horario 2026.xlsx?v=' + Date.now());
+        const res = await fetch(path + '?v=' + Date.now());
+        if(!res.ok) return;
         const data = await res.arrayBuffer();
         const wb = XLSX.read(data, {type: 'array'});
         const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
-        const selector = document.getElementById('weekSelector');
+        
+        const weeks = [];
+        json.forEach((row, i) => {
+            if(row && row[0] && row[0].toString().toLowerCase().includes('semana')) {
+                weeks.push({name: row[0], index: i});
+            }
+        });
+
+        const selector = document.getElementById(selectorId);
         if(selector) {
-            const weeks = json.map((r, i) => ({name: r[0], index: i})).filter(w => w.name && w.name.toString().toLowerCase().includes('semana'));
             selector.innerHTML = weeks.map(w => `<option value="${w.index}">${w.name}</option>`).join('');
-            selector.onchange = (e) => renderTable('scheduleTableBody', json, parseInt(e.target.value), false);
-            if(weeks.length > 0) renderTable('scheduleTableBody', json, weeks[0].index, false);
+            selector.onchange = (e) => renderTable(bodyId, json, parseInt(e.target.value), isTele);
+            if(weeks.length > 0) renderTable(bodyId, json, weeks[0].index, isTele);
         }
-    } catch(e) {}
+    } catch(e) { console.error("Error en tabla:", path, e); }
 }
 
-async function loadTeletrabajo() {
-    try {
-        const res = await fetch('Teletrabajo/Teletrabajo.xlsx?v=' + Date.now());
-        const data = await res.arrayBuffer();
-        const wb = XLSX.read(data, {type: 'array'});
-        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
-        const selector = document.getElementById('teletrabajoWeekSelector');
-        if(selector) {
-            const weeks = json.map((r, i) => ({name: r[0], index: i})).filter(w => w.name && w.name.toString().toLowerCase().includes('semana'));
-            selector.innerHTML = weeks.map(w => `<option value="${w.index}">${w.name}</option>`).join('');
-            selector.onchange = (e) => renderTable('teletrabajoTableBody', json, parseInt(e.target.value), true);
-            if(weeks.length > 0) renderTable('teletrabajoTableBody', json, weeks[0].index, true);
-        }
-    } catch(e) {}
-}
+async function loadSchedule() { loadTableData('Horario/Horario 2026.xlsx', 'weekSelector', 'scheduleTableBody', false); }
+async function loadTeletrabajo() { loadTableData('Teletrabajo/Teletrabajo.xlsx', 'teletrabajoWeekSelector', 'teletrabajoTableBody', true); }
 
 function renderTable(bodyId, json, start, isTele) {
     const body = document.getElementById(bodyId);
@@ -171,7 +176,7 @@ function renderTable(bodyId, json, start, isTele) {
     body.innerHTML = '';
     for(let i = start + 1; i < json.length; i++) {
         const row = json[i];
-        if(!row[0] || row[0].toString().toLowerCase().includes('semana')) break;
+        if(!row || !row[0] || row[0].toString().toLowerCase().includes('semana')) break;
         if(row[0] === 'GESTOR') continue;
         const tr = document.createElement('tr');
         tr.innerHTML = row.map((cell, idx) => {
@@ -202,8 +207,6 @@ function renderDocs() {
 async function loadDashboardStats() {
     const t = document.getElementById('stat-teletrabajo');
     if(t) t.textContent = '12';
-    const s = document.getElementById('stat-supervisores');
-    if(s) s.textContent = '2';
 }
 
 window.onload = initApp;
