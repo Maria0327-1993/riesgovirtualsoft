@@ -612,6 +612,10 @@ function initApp() {
     // Populate user UI (High Priority)
     if (currentUser) {
         console.log("Cargando perfil de:", currentUser.name);
+        const nameEl = document.querySelector(".user-name");
+        const rEl = document.querySelector(".user-role");
+        if(nameEl) nameEl.innerText = currentUser.name;
+        if(rEl) rEl.innerText = currentUser.role;
         const userNameEl = document.querySelector('.user-name');
         const roleEl = document.querySelector('.user-role');
         const shiftBadgeEl = document.querySelector('.shift-badge');
@@ -666,13 +670,6 @@ function initApp() {
             // Cambiar Finalizar Turno por Cerrar Sesión
             if(endShiftBtn) {
                 endShiftBtn.innerHTML = "<i class='bx bx-log-out'></i> Cerrar Sesión";
-                endShiftBtn.onclick = function(e) {
-                    e.preventDefault();
-                    if(confirm("¿Seguro que deseas cerrar sesión?")) {
-                        localStorage.removeItem('riskOps_currentUser');
-                        window.location.href = 'login.html';
-                    }
-                };
             }
             
             // Ocultar el badge del turno para Admin/Supervisor
@@ -1624,6 +1621,18 @@ async function loadDashboardStats() {
         console.error("Error loading dashboard stats:", e);
     }
 }
+
+
+
+
+window.handleEndShift = function() {
+    const isGestor = currentUser && currentUser.role === "Gestor de Riesgo";
+    const msg = isGestor ? "¿Estás seguro que deseas finalizar tu turno?" : "¿Seguro que deseas cerrar sesión?";
+    if(confirm(msg)) {
+        localStorage.removeItem("riskOps_currentUser");
+        window.location.href = "login.html";
+    }
+};
 
 
 
