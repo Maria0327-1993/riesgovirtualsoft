@@ -1,4 +1,4 @@
-// Risk Manager - App Logic v61
+// Risk Manager - App Logic v62 (FULL RESTORE)
 function removeAccents(str) {
     if (!str) return "";
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -42,6 +42,7 @@ async function initApp() {
         }
     }
 
+    loadExcelTasks();
     loadSchedule();
     loadTeletrabajo();
     renderDocs();
@@ -67,70 +68,114 @@ async function initApp() {
     loadDashboardStats();
 }
 
-async function loadSchedule() {
+// LOGICA DE TAREAS (SETS)
+async function loadExcelTasks() {
+    const container = document.querySelector('.tree-container');
+    if(!container) return;
     try {
-        const res = await fetch('Horario/Horario 2026.xlsx?v=' + Date.now());
-        if(!res.ok) return;
+        const res = await fetch('Tareas Riesgo/Tareas de Riesgo.xlsx?v=' + Date.now());
         const data = await res.arrayBuffer();
         const wb = XLSX.read(data, {type: 'array'});
         const sheet = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+        const json = XLSX.utils.sheet_to_json(sheet);
         
+        const grouped = {};
+        json.forEach(row => {
+            const set = row['Set '] || row['Set'] || 'Otros';
+            if(!grouped[set]) grouped[set] = [];
+            grouped[set].push(row);
+        });
+        renderTree(grouped);
+    } catch(e) { console.error(e); }
+}
+
+function renderTree(grouped) {
+    const container = document.querySelector('.tree-container');
+    if(!container) return;
+    container.innerHTML = '';
+    Object.keys(grouped).sort().forEach(set => {
+        const div = document.createElement('div');
+        div.className = 'tree-item';
+        div.innerHTML = `
+            <div class="tree-header" onclick="this.parentElement.classList.toggle('open')">
+                <i class="bx bx-chevron-right"></i>
+                <i class="bx bx-folder"></i>
+                <span>${set}</span>
+                <span class="badge pending">${grouped[set].length}</span>
+            </div>
+            <div class="tree-children">
+                ${grouped[set].map(t => `
+                    <div class="task-item" onclick="selectTask(${JSON.stringify(t).replace(/"/g, '&quot;')})">
+                        <i class="bx bx-file"></i>
+                        <span>${t.Tarea || 'Sin nombre'}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function selectTask(task) {
+    document.getElementById('view-dashboard').style.display = 'none';
+    document.getElementById('view-workspace').style.display = 'block';
+    const detail = document.querySelector('.task-detail-content');
+    if(detail) {
+        detail.innerHTML = `
+            <h3 style="color:var(--accent-primary); margin-bottom:15px;">${task.Tarea}</h3>
+            <div class="glass-panel" style="padding:20px;">
+                <p><strong>Detalle:</strong> ${task['Detalle de Tarea'] || '-'}</p>
+                <p><strong>Horario:</strong> ${task.Horario || '-'}</p>
+                <p><strong>Día:</strong> ${task['Día'] || '-'}</p>
+            </div>
+        `;
+    }
+}
+
+// LOGICA DE HORARIO Y TELETRABAJO
+async function loadSchedule() {
+    try {
+        const res = await fetch('Horario/Horario 2026.xlsx?v=' + Date.now());
+        const data = await res.arrayBuffer();
+        const wb = XLSX.read(data, {type: 'array'});
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
         const selector = document.getElementById('weekSelector');
         if(selector) {
-            const weeks = [];
-            json.forEach((row, i) => {
-                if(row[0] && row[0].toString().toLowerCase().includes('semana')) {
-                    weeks.push({ name: row[0], index: i });
-                }
-            });
-
+            const weeks = json.map((r, i) => ({name: r[0], index: i})).filter(w => w.name && w.name.toString().toLowerCase().includes('semana'));
             selector.innerHTML = weeks.map(w => `<option value="${w.index}">${w.name}</option>`).join('');
-            selector.onchange = (e) => renderGroupedTable('scheduleTableBody', json, parseInt(e.target.value), false);
-            if(weeks.length > 0) renderGroupedTable('scheduleTableBody', json, weeks[0].index, false);
+            selector.onchange = (e) => renderTable('scheduleTableBody', json, parseInt(e.target.value), false);
+            if(weeks.length > 0) renderTable('scheduleTableBody', json, weeks[0].index, false);
         }
-    } catch(e) { console.error(e); }
+    } catch(e) {}
 }
 
 async function loadTeletrabajo() {
     try {
         const res = await fetch('Teletrabajo/Teletrabajo.xlsx?v=' + Date.now());
-        if(!res.ok) return;
         const data = await res.arrayBuffer();
         const wb = XLSX.read(data, {type: 'array'});
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
-        
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
         const selector = document.getElementById('teletrabajoWeekSelector');
         if(selector) {
-            const weeks = [];
-            json.forEach((row, i) => {
-                if(row[0] && row[0].toString().toLowerCase().includes('semana')) {
-                    weeks.push({ name: row[0], index: i });
-                }
-            });
-
+            const weeks = json.map((r, i) => ({name: r[0], index: i})).filter(w => w.name && w.name.toString().toLowerCase().includes('semana'));
             selector.innerHTML = weeks.map(w => `<option value="${w.index}">${w.name}</option>`).join('');
-            selector.onchange = (e) => renderGroupedTable('teletrabajoTableBody', json, parseInt(e.target.value), true);
-            if(weeks.length > 0) renderGroupedTable('teletrabajoTableBody', json, weeks[0].index, true);
+            selector.onchange = (e) => renderTable('teletrabajoTableBody', json, parseInt(e.target.value), true);
+            if(weeks.length > 0) renderTable('teletrabajoTableBody', json, weeks[0].index, true);
         }
-    } catch(e) { console.error(e); }
+    } catch(e) {}
 }
 
-function renderGroupedTable(bodyId, json, startIndex, isTele) {
+function renderTable(bodyId, json, start, isTele) {
     const body = document.getElementById(bodyId);
     if(!body) return;
     body.innerHTML = '';
-    
-    for(let i = startIndex + 1; i < json.length; i++) {
+    for(let i = start + 1; i < json.length; i++) {
         const row = json[i];
         if(!row[0] || row[0].toString().toLowerCase().includes('semana')) break;
         if(row[0] === 'GESTOR') continue;
-
         const tr = document.createElement('tr');
         tr.innerHTML = row.map((cell, idx) => {
             if(isTele && idx > 0) {
-                // Lógica de íconos para Teletrabajo
                 const c = (cell || '').toString().toUpperCase();
                 if(c.includes('T')) return `<td><div class="status-badge tele"><i class="bx bx-home"></i></div></td>`;
                 if(c.includes('O')) return `<td><div class="status-badge office"><i class="bx bx-building"></i></div></td>`;
@@ -144,19 +189,21 @@ function renderGroupedTable(bodyId, json, startIndex, isTele) {
 function renderDocs() {
     const grid = document.querySelector('.docs-grid');
     const recent = document.getElementById('recent-docs-list');
-    const archivos = ["Instructivo de validación de GGR Casino.pdf", "Política Procedimiento De Aprobación De Retiros.pdf", "VALIDACIÓN DE ABUSO DE BONOS EN CAMPAÑAS DE CRM.pdf"];
-    const html = archivos.map(f => `
-        <div class="glass-panel" style="padding:10px; display:flex; gap:10px; cursor:pointer; align-items:center;" onclick="window.open('Procesos/${f}')">
-            <i class="bx bxs-file-pdf" style="color:#FF5A5A; font-size:20px;"></i>
-            <span style="font-size:12px;">${f}</span>
+    const files = ["Instructivo de validación de GGR Casino.pdf", "Política Procedimiento De Aprobación De Retiros.pdf", "VALIDACIÓN DE ABUSO DE BONOS EN CAMPAÑAS DE CRM.pdf"];
+    const html = files.map(f => `
+        <div class="glass-panel doc-card" onclick="window.open('Procesos/${f}')">
+            <i class="bx bxs-file-pdf"></i>
+            <span>${f.split('.')[0]}</span>
         </div>`).join('');
     if(grid) grid.innerHTML = html;
     if(recent) recent.innerHTML = html;
 }
 
 async function loadDashboardStats() {
-    const statT = document.getElementById('stat-teletrabajo');
-    if(statT) statT.textContent = '8'; 
+    const t = document.getElementById('stat-teletrabajo');
+    if(t) t.textContent = '12';
+    const s = document.getElementById('stat-supervisores');
+    if(s) s.textContent = '2';
 }
 
 window.onload = initApp;
