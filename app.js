@@ -1,4 +1,4 @@
-// Risk Manager - App Logic v60
+// Risk Manager - App Logic v61
 function removeAccents(str) {
     if (!str) return "";
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -56,8 +56,8 @@ async function initApp() {
             const txt = item.textContent;
             if(txt.includes('Inicio')) { document.getElementById('view-dashboard').style.display = 'block'; loadDashboardStats(); }
             else if(txt.includes('Tareas')) document.getElementById('view-workspace').style.display = 'block';
-            else if(txt.includes('Horario')) document.getElementById('view-horario').style.display = 'block';
-            else if(txt.includes('Teletrabajo')) document.getElementById('view-teletrabajo').style.display = 'block';
+            else if(txt.includes('Horario')) { document.getElementById('view-horario').style.display = 'block'; loadSchedule(); }
+            else if(txt.includes('Teletrabajo')) { document.getElementById('view-teletrabajo').style.display = 'block'; loadTeletrabajo(); }
             else if(txt.includes('Documentación')) document.getElementById('view-docs').style.display = 'block';
             else if(txt.includes('Permisos')) document.getElementById('view-permisos').style.display = 'block';
             else if(txt.includes('Aprobaciones')) document.getElementById('view-aprobaciones').style.display = 'block';
@@ -78,7 +78,6 @@ async function loadSchedule() {
         
         const selector = document.getElementById('weekSelector');
         if(selector) {
-            // Filtrar solo las filas que contienen "Semana"
             const weeks = [];
             json.forEach((row, i) => {
                 if(row[0] && row[0].toString().toLowerCase().includes('semana')) {
@@ -87,8 +86,8 @@ async function loadSchedule() {
             });
 
             selector.innerHTML = weeks.map(w => `<option value="${w.index}">${w.name}</option>`).join('');
-            selector.onchange = (e) => renderGroupedTable('scheduleTableBody', json, parseInt(e.target.value));
-            if(weeks.length > 0) renderGroupedTable('scheduleTableBody', json, weeks[0].index);
+            selector.onchange = (e) => renderGroupedTable('scheduleTableBody', json, parseInt(e.target.value), false);
+            if(weeks.length > 0) renderGroupedTable('scheduleTableBody', json, weeks[0].index, false);
         }
     } catch(e) { console.error(e); }
 }
@@ -112,26 +111,32 @@ async function loadTeletrabajo() {
             });
 
             selector.innerHTML = weeks.map(w => `<option value="${w.index}">${w.name}</option>`).join('');
-            selector.onchange = (e) => renderGroupedTable('teletrabajoTableBody', json, parseInt(e.target.value));
-            if(weeks.length > 0) renderGroupedTable('teletrabajoTableBody', json, weeks[0].index);
+            selector.onchange = (e) => renderGroupedTable('teletrabajoTableBody', json, parseInt(e.target.value), true);
+            if(weeks.length > 0) renderGroupedTable('teletrabajoTableBody', json, weeks[0].index, true);
         }
     } catch(e) { console.error(e); }
 }
 
-function renderGroupedTable(bodyId, json, startIndex) {
+function renderGroupedTable(bodyId, json, startIndex, isTele) {
     const body = document.getElementById(bodyId);
     if(!body) return;
     body.innerHTML = '';
     
-    // Empezamos desde la fila siguiente a la "Semana"
     for(let i = startIndex + 1; i < json.length; i++) {
         const row = json[i];
-        // Si llegamos a otra "Semana" o a una fila vacía significante, paramos
         if(!row[0] || row[0].toString().toLowerCase().includes('semana')) break;
-        if(row[0] === 'GESTOR') continue; // Saltar cabeceras internas
+        if(row[0] === 'GESTOR') continue;
 
         const tr = document.createElement('tr');
-        tr.innerHTML = row.map(cell => `<td>${cell || '-'}</td>`).join('');
+        tr.innerHTML = row.map((cell, idx) => {
+            if(isTele && idx > 0) {
+                // Lógica de íconos para Teletrabajo
+                const c = (cell || '').toString().toUpperCase();
+                if(c.includes('T')) return `<td><div class="status-badge tele"><i class="bx bx-home"></i></div></td>`;
+                if(c.includes('O')) return `<td><div class="status-badge office"><i class="bx bx-building"></i></div></td>`;
+            }
+            return `<td>${cell || '-'}</td>`;
+        }).join('');
         body.appendChild(tr);
     }
 }
