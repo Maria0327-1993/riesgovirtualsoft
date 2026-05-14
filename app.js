@@ -609,8 +609,9 @@ function initApp() {
         });
     }
 
-    // Populate user UI
+    // Populate user UI (High Priority)
     if (currentUser) {
+        console.log("Cargando perfil de:", currentUser.name);
         const userNameEl = document.querySelector('.user-name');
         const roleEl = document.querySelector('.user-role');
         const shiftBadgeEl = document.querySelector('.shift-badge');
@@ -1623,5 +1624,6 @@ async function loadDashboardStats() {
         console.error("Error loading dashboard stats:", e);
     }
 }
+
 
 
