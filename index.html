@@ -2,8 +2,8 @@
 <html lang="es" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <title>Risk Manager | Portal Operativo</title>
-    <link rel="stylesheet" href="styles.css?v=66">
+    <title>RiskOps | Portal Operativo</title>
+    <link rel="stylesheet" href="styles.css?v=68">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -11,16 +11,15 @@
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <i class='bx bx-shield-quarter' style="font-size: 2rem; color: var(--accent-primary);"></i>
-                <span class="brand-name">Risk Manager</span>
+                <i class='bx bx-shield-quarter' style="font-size: 2rem; color: #3B82F6;"></i>
+                <span class="brand-name" style="color: white; font-size: 1.5rem; font-weight: 800;">Risk<span style="color: #3B82F6;">Ops</span></span>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" id="navWorkspace"><i class='bx bx-grid-alt'></i> Mis Tareas</a>
-                <a href="#" class="nav-item" id="navHorario"><i class='bx bx-calendar'></i> Horario</a>
-                <a href="#" class="nav-item" id="navTeletrabajo"><i class='bx bx-home-alt'></i> Teletrabajo</a>
-                <a href="#" class="nav-item" id="navDocs"><i class='bx bx-folder-open'></i> Documentación</a>
+                <a href="#" class="nav-item active" id="navWorkspace"><i class='bx bx-grid-alt'></i> Workspace</a>
+                <a href="#" class="nav-item" id="navTurno"><i class='bx bx-calendar-event'></i> Mi Turno</a>
+                <a href="#" class="nav-item" id="navDocs"><i class='bx bx-folder'></i> Documentación</a>
                 <a href="#" class="nav-item" id="navPermisos"><i class='bx bx-check-shield'></i> Permisos</a>
-                <a href="#" class="nav-item" id="navAprobaciones" style="display: none;"><i class='bx bx-check-double'></i> Aprobaciones</a>
+                <a href="#" class="nav-item" id="navSoporte"><i class='bx bx-help-circle'></i> Soporte</a>
             </nav>
             <div style="margin-top: auto;">
                 <button class="btn btn-danger" onclick="handleEndShift()">
@@ -32,70 +31,66 @@
         <main class="main-content">
             <header class="top-header">
                 <div class="header-left">
-                    <span id="liveClock" style="font-weight: 700; font-size: 1.1rem; color: var(--accent-primary);">00:00:00</span>
+                    <span class="shift-badge" style="background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">TURNO POR ASIGNAR</span>
+                    <span id="liveClock" style="margin-left: 15px; font-weight: 700; font-size: 1.1rem; color: #3B82F6;">00:00:00</span>
                 </div>
                 <div class="header-right">
-                    <button class="icon-btn" id="themeToggle"><i class='bx bx-sun'></i></button>
+                    <button class="icon-btn" id="themeToggle"><i class='bx bx-moon'></i></button>
                     <button class="icon-btn"><i class='bx bx-bell'></i></button>
                     <div class="user-profile">
-                        <img src="" class="avatar">
-                        <div class="user-details">
-                            <span class="user-name">...</span>
-                            <span class="user-role">...</span>
+                        <div class="avatar-circle" style="width: 40px; height: 40px; background: #007BFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white;">AS</div>
+                        <div class="user-details" style="margin-left: 10px;">
+                            <span class="user-name" style="font-size: 13px; font-weight: 700;">Cargando...</span>
+                            <span class="user-role" style="font-size: 11px; color: #9CA3AF;">Gestor</span>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <!-- Workspace -->
+            <!-- Workspace Section -->
             <div id="view-workspace" class="view-panel active-view">
                 <div class="workspace-grid">
                     <div class="left-panel glass-panel">
-                        <select id="activeSetSelect" class="form-select"></select>
+                        <select id="activeSetSelect" class="form-select glass-panel">
+                            <option value="">Selecciona tu SET...</option>
+                        </select>
                         <div class="tree-container"></div>
                     </div>
                     <div class="right-panel glass-panel">
-                        <div id="taskDetail" class="empty-state">Selecciona una tarea para ver los detalles</div>
+                        <div id="taskDetail">Selecciona una tarea del árbol</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Horario -->
-            <div id="view-horario" class="view-panel">
-                <div class="glass-panel" style="padding:25px;">
+            <!-- Mi Turno (Horario) -->
+            <div id="view-turno" class="view-panel">
+                <div class="glass-panel" style="padding: 25px;">
                     <select id="weekSelector" class="form-select"></select>
-                    <div class="table-container" style="overflow-x: auto;">
-                        <table class="schedule-table">
-                            <tbody id="scheduleTableBody"></tbody>
-                        </table>
+                    <table class="schedule-table">
+                        <tbody id="scheduleTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Permisos Section -->
+            <div id="view-permisos" class="view-panel">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                    <div class="glass-panel" style="padding: 25px;">
+                        <h3>Crear Nueva Solicitud</h3>
+                        <!-- Formulario de permisos -->
+                    </div>
+                    <div class="glass-panel" style="padding: 25px;">
+                        <h3>Histórico de Permisos</h3>
+                        <!-- Lista de permisos -->
                     </div>
                 </div>
             </div>
 
-            <!-- Teletrabajo -->
-            <div id="view-teletrabajo" class="view-panel">
-                <div class="glass-panel" style="padding:25px;">
-                    <select id="teleWeekSelector" class="form-select"></select>
-                    <div class="table-container" style="overflow-x: auto;">
-                        <table class="schedule-table">
-                            <tbody id="teleTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Aprobaciones (Solo Admin) -->
-            <div id="view-aprobaciones" class="view-panel">
-                <div class="glass-panel" style="padding:25px;">
-                    <h2>Aprobaciones Pendientes</h2>
-                    <div id="pendingList" style="margin-top: 20px;"></div>
-                </div>
-            </div>
         </main>
     </div>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="app.js?v=66"></script>
+    <script src="app.js?v=68"></script>
 </body>
 </html>
