@@ -1,3 +1,9 @@
+// Helper para quitar acentos
+function removeAccents(str) {
+    if (!str) return "";
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 // Auth Check
 const currentUserObj = localStorage.getItem('riskOps_currentUser');
 if (!currentUserObj && !window.location.href.includes('login.html')) {
@@ -233,7 +239,9 @@ async function loadSchedule() {
                     const r = rows[rowIndex];
                     if (!r || !r[0] || String(r[0]).trim() === '' || String(r[0]).trim().toUpperCase() === 'GESTOR') break;
                     
-                    let isCurrentUser = (currentUser && (r[0].toLowerCase().includes(currentUser.name.toLowerCase()) || currentUser.name.toLowerCase().includes(r[0].toLowerCase())));
+                    let gestorName = removeAccents(r[0]).toLowerCase().trim();
+                    let currentName = removeAccents(currentUser.name).toLowerCase().trim();
+                    let isCurrentUser = (currentUser && (gestorName.includes(currentName) || currentName.includes(gestorName)));
                     
                     if (currentUser && currentUser.role === 'Gestor' && !isCurrentUser) continue;
 
@@ -365,7 +373,9 @@ function loadTeletrabajo() {
                 
                 tableBody.innerHTML = '';
                 block.data.forEach(row => {
-                    let isCurrentUser = (currentUser && row.gestor.toLowerCase().includes(currentUser.name.toLowerCase()));
+                    let gestorName = removeAccents(row.gestor).toLowerCase().trim();
+                    let currentName = removeAccents(currentUser.name).toLowerCase().trim();
+                    let isCurrentUser = (currentUser && (gestorName.includes(currentName) || currentName.includes(gestorName)));
                     
                     if (currentUser && currentUser.role === 'Gestor' && !isCurrentUser) return;
 
@@ -611,11 +621,13 @@ function initApp() {
         
         const avatarEl = document.querySelector('.avatar');
         if (avatarEl && currentUser.name) {
-            const cleanName = currentUser.name.trim();
+            const cleanName = removeAccents(currentUser.name).trim(); // Quita acentos pero mantiene espacios y mayúsculas
             avatarEl.onerror = function() {
                 this.onerror = null;
-                this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=0D8ABC&color=fff`;
+                this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff`;
             };
+            // Intentamos cargar la foto con el nombre normalizado (sin acentos)
+            // IMPORTANTE: Asegúrate que el archivo en GitHub termine en .png (minúsculas)
             avatarEl.src = `assets/src/img/${cleanName}.png`;
         }
 
