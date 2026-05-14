@@ -3,106 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Risk Manager | Portal Operativo</title>
-    <link rel="stylesheet" href="styles.css?v=64">
+    <title>Risk Manager | Estable</title>
+    <link rel="stylesheet" href="styles.css?v=65">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar glass-panel">
+        <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="assets/src/img/logo.svg" alt="Logo" style="width: 35px;">
                 <span class="brand-name">Risk Manager</span>
             </div>
-            
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" id="navWorkspace"><i class='bx bx-grid-alt'></i> Mis Tareas</a>
                 <a href="#" class="nav-item" id="navHorario"><i class='bx bx-calendar'></i> Horario</a>
                 <a href="#" class="nav-item" id="navTeletrabajo"><i class='bx bx-home-alt'></i> Teletrabajo</a>
-                <a href="#" class="nav-item" id="navDocs"><i class='bx bx-folder-open'></i> Documentación</a>
-                <a href="#" class="nav-item" id="navPermisos"><i class='bx bx-check-shield'></i> Permisos</a>
-                <a href="#" class="nav-item" id="navAprobaciones" style="display: none; background: rgba(59, 130, 246, 0.1); color: var(--accent-primary);"><i class='bx bx-check-double'></i> Aprobaciones</a>
             </nav>
-
-            <div class="sidebar-footer">
-                <button id="endShiftBtn" class="btn btn-danger" onclick="handleEndShift()">
-                    <i class='bx bx-power-off'></i> Finalizar Turno
-                </button>
+            <div style="margin-top: auto;">
+                <button class="btn btn-danger" onclick="handleEndShift()">Finalizar Turno</button>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <header class="top-header glass-panel">
-                <div class="header-left">
-                    <span class="shift-badge">Turno Mañana</span>
-                    <div class="live-clock" id="liveClock">00:00:00</div>
-                </div>
-                
-                <div class="header-right">
-                    <button class="icon-btn theme-toggle"><i class='bx bx-moon'></i></button>
-                    <div class="user-profile">
-                        <img src="" alt="Avatar" class="avatar">
-                        <div class="user-details">
-                            <span class="user-name">Cargando...</span>
-                            <span class="user-role">...</span>
-                        </div>
+            <header class="top-header">
+                <div id="liveClock">00:00:00</div>
+                <div class="user-profile">
+                    <img src="" class="avatar">
+                    <div class="user-details">
+                        <span class="user-name">...</span>
+                        <span class="user-role">...</span>
                     </div>
                 </div>
             </header>
 
-            <!-- Workspace Section -->
-            <div id="view-workspace" class="view-panel active-view">
+            <div id="view-workspace" class="view-panel">
                 <div class="workspace-grid">
-                    <aside class="left-panel glass-panel">
-                        <select id="activeSetSelect" class="form-select glass-panel">
-                            <option value="" disabled selected>Selecciona tu SET...</option>
+                    <div class="left-panel glass-panel">
+                        <select id="activeSetSelect" class="form-select">
+                            <option value="">Selecciona tu SET...</option>
                         </select>
                         <div class="tree-container"></div>
-                    </aside>
-                    <section class="right-panel glass-panel">
-                        <div class="task-detail-content">
-                            <div class="empty-state">
-                                <i class='bx bx-select-multiple'></i>
-                                <p>Selecciona una tarea para ver los detalles</p>
-                            </div>
-                        </div>
-                    </section>
+                    </div>
+                    <div class="right-panel glass-panel">
+                        <div id="taskDetail">Selecciona una tarea</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Horario Section -->
-            <div id="view-horario" class="view-panel" style="display: none;">
-                <div class="glass-panel" style="padding: 20px;">
-                    <select id="weekSelector" class="form-select glass-panel" style="margin-bottom: 20px;">
-                        <option value="">Cargando semanas...</option>
-                    </select>
+            <div id="view-horario" class="view-panel" style="display:none;">
+                <div class="glass-panel" style="padding:20px;">
+                    <select id="weekSelector" class="form-select"></select>
                     <table class="schedule-table">
-                        <thead><tr id="scheduleTableHeader"></tr></thead>
                         <tbody id="scheduleTableBody"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Teletrabajo Section -->
-            <div id="view-teletrabajo" class="view-panel" style="display: none;">
-                <div class="glass-panel" style="padding: 20px;">
-                    <select id="teletrabajoWeekSelector" class="form-select glass-panel" style="margin-bottom: 20px;">
-                        <option value="">Cargando semanas...</option>
-                    </select>
+            <div id="view-teletrabajo" class="view-panel" style="display:none;">
+                <div class="glass-panel" style="padding:20px;">
+                    <select id="teleWeekSelector" class="form-select"></select>
                     <table class="schedule-table">
-                        <tbody id="teletrabajoTableBody"></tbody>
+                        <tbody id="teleTableBody"></tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="app.js?v=64"></script>
+    <script src="app.js?v=65"></script>
 </body>
 </html>
