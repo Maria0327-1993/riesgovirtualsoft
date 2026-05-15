@@ -282,7 +282,7 @@ async function loadSchedule() {
                         
                         let badgeClass = 'pending';
                         const sLower = normalizeName(shift);
-                        if(shift.includes('pm') || shift.includes('am')) badgeClass = 'in-progress';
+                        if(/\d\s*(am|pm)/i.test(shift)) badgeClass = 'in-progress';
                         else if(sLower.includes('vacacion')) badgeClass = 'vacaciones-badge';
                         else if(sLower.includes('descansa')) badgeClass = 'descanso-badge';
                         else if(sLower.includes('familia')) badgeClass = 'familia-badge';
