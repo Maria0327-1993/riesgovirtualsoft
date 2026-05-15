@@ -11,6 +11,11 @@ try {
     localStorage.removeItem('riskOps_currentUser');
     window.location.href = 'login.html';
 }
+// Helper to remove accents and normalize names for comparison and file paths
+function normalizeName(name) {
+    if (!name) return "";
+    return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
 
 let taskStateCache = {};
 try {
@@ -233,7 +238,9 @@ async function loadSchedule() {
                     const r = rows[rowIndex];
                     if (!r || !r[0] || String(r[0]).trim() === '' || String(r[0]).trim().toUpperCase() === 'GESTOR') break;
                     
-                    let isCurrentUser = (currentUser && (r[0].toLowerCase().includes(currentUser.name.toLowerCase()) || currentUser.name.toLowerCase().includes(r[0].toLowerCase())));
+                    const normalizedRowName = normalizeName(r[0]).toLowerCase();
+                    const normalizedCurrentName = normalizeName(currentUser.name).toLowerCase();
+                    let isCurrentUser = (currentUser && (normalizedRowName.includes(normalizedCurrentName) || normalizedCurrentName.includes(normalizedRowName)));
                     
                     if (currentUser && currentUser.role === 'Gestor' && !isCurrentUser) continue;
 
@@ -365,7 +372,9 @@ function loadTeletrabajo() {
                 
                 tableBody.innerHTML = '';
                 block.data.forEach(row => {
-                    let isCurrentUser = (currentUser && row.gestor.toLowerCase().includes(currentUser.name.toLowerCase()));
+                    const normalizedRowGestor = normalizeName(row.gestor).toLowerCase();
+                    const normalizedCurrentUser = normalizeName(currentUser.name).toLowerCase();
+                    let isCurrentUser = (currentUser && normalizedRowGestor.includes(normalizedCurrentUser));
                     
                     if (currentUser && currentUser.role === 'Gestor' && !isCurrentUser) return;
 
@@ -612,10 +621,20 @@ function initApp() {
         const avatarEl = document.querySelector('.avatar');
         if (avatarEl && currentUser.name) {
             const cleanName = currentUser.name.trim();
+            const safeName = normalizeName(cleanName); // Versión sin acentos
+            
             avatarEl.onerror = function() {
-                this.onerror = null;
-                this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=0D8ABC&color=fff`;
+                // Si falla la versión con nombre real, probamos la versión sin acentos
+                if (this.src.includes(encodeURIComponent(cleanName))) {
+                    this.src = `assets/src/img/${safeName}.png`;
+                } else {
+                    // Si ambos fallan, usamos UI-Avatars
+                    this.onerror = null;
+                    this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=0D8ABC&color=fff`;
+                }
             };
+            
+            // Intentamos primero el nombre tal cual viene de Firebase
             avatarEl.src = `assets/src/img/${cleanName}.png`;
         }
 
