@@ -284,6 +284,7 @@ async function loadSchedule() {
                         if(shift.includes('pm') || shift.includes('am')) badgeClass = 'in-progress';
                         else if(shift.toLowerCase().includes('vacacion')) badgeClass = 'vacaciones-badge';
                         else if(shift.toLowerCase().includes('descansa')) badgeClass = 'descanso-badge';
+                        else if(shift.toLowerCase().includes('familia')) badgeClass = 'familia-badge';
                         
                         trHTML += `<td style="padding: 12px; text-align: center; white-space: nowrap;"><span class="badge ${badgeClass}">${shift}</span></td>`;
                     }
