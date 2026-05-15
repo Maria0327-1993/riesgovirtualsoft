@@ -328,7 +328,7 @@ function loadTeletrabajo() {
                             data: []
                         };
                         
-                        for(let i = r + 2; i < rows.length; i++) {
+                        for(let i = r + 1; i < rows.length; i++) {
                             const gestor = rows[i] ? rows[i][c] : null;
                             const dia = rows[i] ? rows[i][c+1] : null;
                             
