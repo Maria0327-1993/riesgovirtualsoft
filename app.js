@@ -135,7 +135,7 @@ async function loadExcelTasks() {
 // Initializar parseo del Horario Personal
 async function loadSchedule() {
     try {
-        const url = encodeURI('Horario/Horario 2026.xlsx') + '?t=' + new Date().getTime();
+        const url = encodeURI('Horario/Horario 2026.xlsx') + '?t=' + Date.now();
         const response = await fetch(url);
         if(!response.ok) throw new Error("Fallo red");
         const arrayBuffer = await response.arrayBuffer();
@@ -232,7 +232,7 @@ async function loadSchedule() {
                 if(numCols === 0) numCols = 7; // fallback
                 
                 let headHTML = '<tr style="border-bottom: 1px solid var(--glass-border);">';
-                headHTML += `<th style="padding: 12px; color: var(--accent-primary); text-align: left; position: sticky; left: 0; background: var(--bg-panel); z-index: 2;">GESTOR</th>`;
+                headHTML += `<th style="padding: 12px; color: var(--accent-primary); text-align: left; position: sticky; left: 0; background: var(--bg-panel); z-index: 2;">GESTOR <i class='bx bx-refresh' style='cursor:pointer; margin-left:5px;' onclick='loadSchedule()' title='Refrescar Horario'></i></th>`;
                 for(let i = 1; i <= numCols; i++) {
                     const dayName = dayRow[i] || `Día ${i}`;
                     const dateParsed = formatExcelDate(dateRow[i]);
@@ -380,7 +380,7 @@ function loadTeletrabajo() {
             function renderTeletrabajoBlock(block) {
                 tableHead.innerHTML = `
                     <tr style="border-bottom: 1px solid var(--glass-border);">
-                        <th style="padding: 12px; color: var(--accent-primary); text-align: left; position: sticky; left: 0; background: var(--bg-panel); z-index: 2;">GESTOR</th>
+                        <th style="padding: 12px; color: var(--accent-primary); text-align: left; position: sticky; left: 0; background: var(--bg-panel); z-index: 2;">GESTOR <i class='bx bx-refresh' style='cursor:pointer; margin-left:5px;' onclick='loadTeletrabajo()' title='Refrescar Teletrabajo'></i></th>
                         <th style="padding: 12px; color: var(--accent-primary); text-align: center;">DÍA</th>
                         <th style="padding: 12px; color: var(--accent-primary); text-align: center;">MODALIDAD</th>
                     </tr>
