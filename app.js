@@ -281,10 +281,11 @@ async function loadSchedule() {
                         }
                         
                         let badgeClass = 'pending';
+                        const sLower = normalizeName(shift);
                         if(shift.includes('pm') || shift.includes('am')) badgeClass = 'in-progress';
-                        else if(shift.toLowerCase().includes('vacacion')) badgeClass = 'vacaciones-badge';
-                        else if(shift.toLowerCase().includes('descansa')) badgeClass = 'descanso-badge';
-                        else if(shift.toLowerCase().includes('familia')) badgeClass = 'familia-badge';
+                        else if(sLower.includes('vacacion')) badgeClass = 'vacaciones-badge';
+                        else if(sLower.includes('descansa')) badgeClass = 'descanso-badge';
+                        else if(sLower.includes('familia')) badgeClass = 'familia-badge';
                         
                         trHTML += `<td style="padding: 12px; text-align: center; white-space: nowrap;"><span class="badge ${badgeClass}">${shift}</span></td>`;
                     }
@@ -359,15 +360,8 @@ function loadTeletrabajo() {
                     weekSelector.innerHTML += `<option value="${idx}">${block.label}</option>`;
                 });
                 
+                // Mostrar siempre la última semana disponible al inicio
                 let defaultBlockIdx = allBlocks.length - 1;
-                const todayD = new Date();
-                const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-                const currentMonthStr = monthNames[todayD.getMonth()];
-                for(let b = 0; b < allBlocks.length; b++) {
-                    if(allBlocks[b].label.toLowerCase().includes(currentMonthStr.toLowerCase())) {
-                        defaultBlockIdx = b;
-                    }
-                }
                 
                 weekSelector.value = defaultBlockIdx;
                 
