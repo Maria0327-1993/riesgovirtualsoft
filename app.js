@@ -633,22 +633,30 @@ function initApp() {
         
         const avatarEl = document.querySelector('.avatar');
         if (avatarEl && currentUser.name) {
-            const cleanName = currentUser.name.trim();
-            const safeName = normalizeName(cleanName); // Versión sin acentos
+            const fullName = currentUser.name.trim();
+            const words = fullName.split(/\s+/);
+            const shortName = words.slice(0, 2).join(" "); // Ej: "Oriana Borja"
+            const safeName = normalizeName(fullName);
+            const safeShortName = normalizeName(shortName);
             
             avatarEl.onerror = function() {
-                // Si falla la versión con nombre real, probamos la versión sin acentos
-                if (this.src.includes(encodeURIComponent(cleanName))) {
-                    this.src = `assets/src/img/${safeName}.png`;
+                if (this.src.includes(encodeURIComponent(fullName))) {
+                    // Si falló el nombre completo, probamos el nombre corto (2 palabras)
+                    console.log("Probando nombre corto:", shortName);
+                    this.src = `assets/src/img/${shortName}.png`;
+                } else if (this.src.includes(encodeURIComponent(shortName))) {
+                    // Si falló el corto, probamos sin acentos
+                    console.log("Probando versión sin acentos:", safeShortName);
+                    this.src = `assets/src/img/${safeShortName}.png`;
                 } else {
-                    // Si ambos fallan, usamos UI-Avatars
+                    // Fallback final
                     this.onerror = null;
                     this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=0D8ABC&color=fff`;
                 }
             };
             
-            // Intentamos primero el nombre tal cual viene de Firebase
-            avatarEl.src = `assets/src/img/${cleanName}.png`;
+            console.log("Intentando cargar foto para:", fullName);
+            avatarEl.src = `assets/src/img/${fullName}.png`;
         }
 
         // Show Aprobaciones tab for Supervisor/Admin
