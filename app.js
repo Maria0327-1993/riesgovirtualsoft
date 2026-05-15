@@ -641,19 +641,21 @@ function initApp() {
             const safeShortName = normalizeName(shortName);
             
             avatarEl.onerror = function() {
+                const currentSrc = this.src.toLowerCase();
                 if (this.src.includes(encodeURIComponent(fullName))) {
                     console.log("Probando nombre corto (2 palabras):", shortName);
                     this.src = `assets/src/img/${shortName}.png`;
                 } else if (this.src.includes(encodeURIComponent(shortName))) {
-                    // Si falló el de 2 palabras, intentamos solo el primer nombre
-                    const firstWord = words[0];
-                    console.log("Probando primer nombre:", firstWord);
+                    // Si falló el corto, probamos todo en minúsculas
+                    console.log("Probando todo en minúsculas:", safeName);
+                    this.src = `assets/src/img/${safeName}.png`;
+                } else if (this.src.includes(encodeURIComponent(safeName))) {
+                    // Si falló minúsculas, intentamos solo el primer nombre
+                    const firstWord = words[0].toLowerCase();
+                    console.log("Probando solo primer nombre:", firstWord);
                     this.src = `assets/src/img/${firstWord}.png`;
-                } else if (this.src.includes(encodeURIComponent(words[0]))) {
-                    // Si falló el de 1 palabra, probamos sin acentos
-                    console.log("Probando versión sin acentos:", safeShortName);
-                    this.src = `assets/src/img/${safeShortName}.png`;
                 } else {
+                    console.log("No se encontró foto, usando avatar genérico.");
                     this.onerror = null;
                     this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=0D8ABC&color=fff`;
                 }
