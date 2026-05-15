@@ -14,7 +14,24 @@ try {
 // Helper to remove accents and normalize names for comparison and file paths
 function normalizeName(name) {
     if (!name) return "";
-    return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+}
+
+// Robust comparison: checks if all words of one name are present in the other
+function namesMatch(name1, name2) {
+    if (!name1 || !name2) return false;
+    const n1 = normalizeName(name1);
+    const n2 = normalizeName(name2);
+    
+    // Split into words and filter out very short ones (like 'de', 'la')
+    const words1 = n1.split(/\s+/).filter(w => w.length > 2);
+    const words2 = n2.split(/\s+/).filter(w => w.length > 2);
+    
+    if (words1.length === 0 || words2.length === 0) return n1.includes(n2) || n2.includes(n1);
+
+    // Check if all words of the shorter name are in the longer name
+    const [shorter, longer] = words1.length <= words2.length ? [words1, n2] : [words2, n1];
+    return shorter.every(word => longer.includes(word));
 }
 
 let taskStateCache = {};
@@ -238,9 +255,7 @@ async function loadSchedule() {
                     const r = rows[rowIndex];
                     if (!r || !r[0] || String(r[0]).trim() === '' || String(r[0]).trim().toUpperCase() === 'GESTOR') break;
                     
-                    const normalizedRowName = normalizeName(r[0]).toLowerCase();
-                    const normalizedCurrentName = normalizeName(currentUser.name).toLowerCase();
-                    let isCurrentUser = (currentUser && (normalizedRowName.includes(normalizedCurrentName) || normalizedCurrentName.includes(normalizedRowName)));
+                    let isCurrentUser = (currentUser && namesMatch(r[0], currentUser.name));
                     
                     if (currentUser && currentUser.role === 'Gestor' && !isCurrentUser) continue;
 
@@ -372,9 +387,7 @@ function loadTeletrabajo() {
                 
                 tableBody.innerHTML = '';
                 block.data.forEach(row => {
-                    const normalizedRowGestor = normalizeName(row.gestor).toLowerCase();
-                    const normalizedCurrentUser = normalizeName(currentUser.name).toLowerCase();
-                    let isCurrentUser = (currentUser && normalizedRowGestor.includes(normalizedCurrentUser));
+                    let isCurrentUser = (currentUser && namesMatch(row.gestor, currentUser.name));
                     
                     if (currentUser && currentUser.role === 'Gestor' && !isCurrentUser) return;
 
