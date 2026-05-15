@@ -188,27 +188,13 @@ async function loadSchedule() {
             
             const weekSelector = document.getElementById('weekSelector');
             
-            // Determinar columna de hoy
-            const todayD = new Date();
-            const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-            const todayStr = `${todayD.getDate()} ${monthNames[todayD.getMonth()]}`;
-            
-            // Removida búsqueda global. Se actualizará en renderScheduleBlock.
-            
-            let defaultBlockRow = allScheduleBlocks[allScheduleBlocks.length - 1].startRow; // Default último bloque
+            // Siempre el último bloque por defecto
+            let defaultBlockRow = allScheduleBlocks[allScheduleBlocks.length - 1].startRow; 
             
             if (weekSelector) {
                 weekSelector.innerHTML = '';
                 allScheduleBlocks.forEach(block => {
                     weekSelector.innerHTML += `<option value="${block.startRow}">${block.label}</option>`;
-                    
-                    // Buscar si "hoy" está en este bloque para seleccionarlo por defecto
-                    const tRow = rows[block.startRow];
-                    for(let i=1; i<tRow.length; i++) {
-                        if (formatExcelDate(tRow[i]) === todayStr) {
-                            defaultBlockRow = block.startRow;
-                        }
-                    }
                 });
                 
                 weekSelector.value = defaultBlockRow;
@@ -242,14 +228,6 @@ async function loadSchedule() {
                 headHTML += '</tr>';
                 tableHead.innerHTML = headHTML;
                 
-                let todayColIndex = -1;
-                for(let i = 1; i <= numCols; i++) {
-                    if (formatExcelDate(dateRow[i]) === todayStr) {
-                        todayColIndex = i;
-                        break;
-                    }
-                }
-                
                 tableBody.innerHTML = '';
                 for(let rowIndex = blockStartRow + 2; rowIndex < rows.length; rowIndex++) {
                     const r = rows[rowIndex];
@@ -271,11 +249,9 @@ async function loadSchedule() {
                         const shift = r[i] || 'Descansa';
                         
                         if (isCurrentUser) {
-                            if (i === todayColIndex) {
+                            if (!badgeShift && shift && !shift.includes('Descansa')) {
                                 badgeShift = shift;
-                            } else if (todayColIndex === -1 && !badgeShift && shift && !shift.includes('Descansa')) {
-                                badgeShift = shift;
-                            } else if (todayColIndex === -1 && !badgeShift && i === numCols) {
+                            } else if (!badgeShift && i === numCols) {
                                 badgeShift = shift; // fallback
                             }
                         }
@@ -321,8 +297,9 @@ function loadTeletrabajo() {
             
             for(let r = 0; r < rows.length; r++) {
                 for(let c = 0; c < rows[r].length; c++) {
-                    const cellVal = String(rows[r][c]).trim();
-                    if(cellVal.toLowerCase().startsWith('semana')) {
+                    // Bloque mejorado: busca etiquetas claras de calendario
+                    const lowCell = cellVal.toLowerCase();
+                    if(lowCell.includes('semana') || lowCell.includes('teletrabajo') || /^\d{1,2}\/\d{1,2}/.test(cellVal)) {
                         let block = {
                             label: cellVal,
                             startRow: r,
@@ -330,12 +307,13 @@ function loadTeletrabajo() {
                             data: []
                         };
                         
+                        // Buscamos filas debajo de este título que tengan nombres
                         for(let i = r + 1; i < rows.length; i++) {
                             const gestor = rows[i] ? rows[i][c] : null;
                             const dia = rows[i] ? rows[i][c+1] : null;
                             
                             if(!gestor || String(gestor).trim() === '') break;
-                            if(String(gestor).trim().toUpperCase() === 'GESTOR') continue; // Skip header but don't stop
+                            if(String(gestor).trim().toUpperCase() === 'GESTOR') continue; 
                             
                             block.data.push({
                                 gestor: String(gestor).trim(),
@@ -343,7 +321,7 @@ function loadTeletrabajo() {
                             });
                         }
                         
-                        allBlocks.push(block);
+                        if(block.data.length > 0) allBlocks.push(block);
                     }
                 }
             }
