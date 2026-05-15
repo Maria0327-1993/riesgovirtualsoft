@@ -940,13 +940,11 @@ function initApp() {
                 return;
             }
             
-            // Validación obligatoria para "No Realizada"
-            if(selectedStatusBtn && selectedStatusBtn.classList.contains('not-done')) {
-                const obsField = document.getElementById('taskObservation');
-                if(!obsField || !obsField.value.trim()) {
-                    alert("Para tareas marcadas como 'No Realizada', es OBLIGATORIO detallar el motivo en las Notas Técnicas.");
-                    return; // Detener el guardado
-                }
+            // Validación obligatoria para todas las tareas
+            const obsField = document.getElementById('taskObservation');
+            if(!obsField || !obsField.value.trim()) {
+                alert("OBLIGATORIO: Debes detallar la gestión realizada en las Notas Técnicas antes de guardar.");
+                return;
             }
 
             const btn = saveTaskBtn;
@@ -1129,17 +1127,30 @@ function handleEndShift() {
                 btn.disabled = true;
             }
 
-            fetch("https://formsubmit.co/maria.sanchez@virtualsoft.tech", {
-                method: "POST",
-                body: formData,
-                headers: { 'Accept': 'application/json' }
-            }).finally(() => {
-                alert("Turno finalizado y supervisor notificado exitosamente.");
-                localStorage.removeItem('riskOps_currentUser');
-                window.location.href = 'login.html';
-            });
+            // Crear un formulario invisible para asegurar el envío del correo
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'https://formsubmit.co/maria.sanchez@virtualsoft.tech';
+            
+            // Pasar todos los datos del FormData al formulario real
+            for (let [key, value] of formData.entries()) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
+            }
+            
+            document.body.appendChild(form);
+            
+            // Antes de enviar, limpiamos la sesión y el caché
+            localStorage.removeItem('riskOps_currentUser');
+            localStorage.removeItem('riskOps_cache');
+            
+            // Enviar formulario (esto redirigirá a la página de éxito de FormSubmit)
+            form.submit();
         } else {
-            alert("Turno finalizado exitosamente.");
+            alert("Turno finalizado.");
             localStorage.removeItem('riskOps_currentUser');
             localStorage.removeItem('riskOps_cache');
             window.location.href = 'login.html';
