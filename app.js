@@ -332,7 +332,8 @@ function loadTeletrabajo() {
                             const gestor = rows[i] ? rows[i][c] : null;
                             const dia = rows[i] ? rows[i][c+1] : null;
                             
-                            if(!gestor || String(gestor).trim() === '' || String(gestor).trim().toUpperCase() === 'GESTOR') break;
+                            if(!gestor || String(gestor).trim() === '') break;
+                            if(String(gestor).trim().toUpperCase() === 'GESTOR') continue; // Skip header but don't stop
                             
                             block.data.push({
                                 gestor: String(gestor).trim(),
@@ -641,15 +642,18 @@ function initApp() {
             
             avatarEl.onerror = function() {
                 if (this.src.includes(encodeURIComponent(fullName))) {
-                    // Si falló el nombre completo, probamos el nombre corto (2 palabras)
-                    console.log("Probando nombre corto:", shortName);
+                    console.log("Probando nombre corto (2 palabras):", shortName);
                     this.src = `assets/src/img/${shortName}.png`;
                 } else if (this.src.includes(encodeURIComponent(shortName))) {
-                    // Si falló el corto, probamos sin acentos
+                    // Si falló el de 2 palabras, intentamos solo el primer nombre
+                    const firstWord = words[0];
+                    console.log("Probando primer nombre:", firstWord);
+                    this.src = `assets/src/img/${firstWord}.png`;
+                } else if (this.src.includes(encodeURIComponent(words[0]))) {
+                    // Si falló el de 1 palabra, probamos sin acentos
                     console.log("Probando versión sin acentos:", safeShortName);
                     this.src = `assets/src/img/${safeShortName}.png`;
                 } else {
-                    // Fallback final
                     this.onerror = null;
                     this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=0D8ABC&color=fff`;
                 }
